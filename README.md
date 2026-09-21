@@ -1,6 +1,8 @@
 # jokubot marketing site
 
-Public landing page for jokubot. Sign-in, signup, docs, and the business workspace stay on the app origin (`VITE_APP_ORIGIN`).
+Public landing page: [github.com/Livingstone99/jokubot-www](https://github.com/Livingstone99/jokubot-www). GitHub Pages: https://livingstone99.github.io/jokubot-www/
+
+Sign-in, signup, docs, and the business workspace stay on the app origin (`VITE_APP_ORIGIN`).
 
 This repository has no API, database, or deploy internals.
 
