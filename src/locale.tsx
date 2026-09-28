@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -11,7 +12,6 @@ import {
   applyLocale,
   DEFAULT_LOCALE,
   LOCALE_KEY,
-  localeTag,
   readStoredLocale,
   translate,
   type Locale,
@@ -76,35 +76,111 @@ export function useT() {
   );
 }
 
-export function LocaleToggle({ className }: { className?: string }) {
+const OPTIONS: { locale: Locale; flag: string; labelKey: MessageKey }[] = [
+  { locale: "fr", flag: "🇫🇷", labelKey: "locale.fr" },
+  { locale: "en", flag: "🇬🇧", labelKey: "locale.en" },
+];
+
+export function LocaleMenu({ className }: { className?: string }) {
   const { locale, setLocale } = useLocale();
   const t = useT();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    function onPointerDown(event: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   return (
-    <div
-      className={["locale-toggle", className].filter(Boolean).join(" ")}
-      role="group"
-      aria-label={t("locale.label")}
-    >
+    <div className={["locale-menu", className].filter(Boolean).join(" ")} ref={rootRef}>
       <button
         type="button"
-        className={locale === "fr" ? "is-active" : undefined}
-        aria-pressed={locale === "fr"}
-        onClick={() => setLocale("fr")}
+        className="locale-menu-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={t("locale.label")}
+        onClick={() => setOpen((value) => !value)}
       >
-        {t("locale.fr")}
+        <IconGlobe />
+        <span>{locale.toUpperCase()}</span>
+        <IconChevron open={open} />
       </button>
-      <button
-        type="button"
-        className={locale === "en" ? "is-active" : undefined}
-        aria-pressed={locale === "en"}
-        onClick={() => setLocale("en")}
-      >
-        {t("locale.en")}
-      </button>
+      {open ? (
+        <ul className="locale-menu-panel" role="listbox" aria-label={t("locale.label")}>
+          {OPTIONS.map((option) => (
+            <li key={option.locale}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={locale === option.locale}
+                className={locale === option.locale ? "is-active" : undefined}
+                onClick={() => {
+                  setLocale(option.locale);
+                  setOpen(false);
+                }}
+              >
+                <span className="locale-flag" aria-hidden="true">
+                  {option.flag}
+                </span>
+                {t(option.labelKey)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
 
-export { localeTag };
-export type { Locale };
+function IconGlobe() {
+  return (
+    <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+      <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M2 8h12M8 2c2 2.4 2 9.6 0 12M8 2c-2 2.4-2 9.6 0 12"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+    </svg>
+  );
+}
+
+function IconChevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="12"
+      height="12"
+      aria-hidden="true"
+      style={{ transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s ease" }}
+    >
+      <path
+        d="m4 6 4 4 4-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
