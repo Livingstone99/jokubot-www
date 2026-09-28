@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import { useLocale, useT } from "./locale.js";
+import { localeTag } from "./i18n.js";
 
 function upsertMeta(selector: string, attrs: Record<string, string>, content: string) {
   let el = document.head.querySelector(selector);
@@ -21,13 +22,12 @@ export function SiteMeta() {
   useEffect(() => {
     const title = t("meta.title");
     const description = t("meta.description");
-    const ogLocale = locale === "fr" ? "fr_FR" : "en_US";
 
     document.title = title;
     upsertMeta('meta[name="description"]', { name: "description" }, description);
     upsertMeta('meta[property="og:title"]', { property: "og:title" }, title);
     upsertMeta('meta[property="og:description"]', { property: "og:description" }, description);
-    upsertMeta('meta[property="og:locale"]', { property: "og:locale" }, ogLocale);
+    upsertMeta('meta[property="og:locale"]', { property: "og:locale" }, localeTag(locale));
     const canonical = `${window.location.origin}${import.meta.env.BASE_URL}`;
     upsertMeta('meta[property="og:url"]', { property: "og:url" }, canonical);
     upsertMeta('meta[name="twitter:title"]', { name: "twitter:title" }, title);
