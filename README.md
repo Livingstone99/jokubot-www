@@ -2,7 +2,14 @@
 
 Page d'accueil publique de JokuBot : [github.com/Livingstone99/jokubot-www](https://github.com/Livingstone99/jokubot-www), publiée sur GitHub Pages à https://livingstone99.github.io/jokubot-www/.
 
-Ce dépôt ne contient **que la page marketing**. Il n'y a ni API, ni base de données, ni logique métier. La connexion, l'inscription, la documentation et l'espace client vivent dans l'application JokuBot, sur une autre origine (`VITE_APP_ORIGIN`). Tous les boutons « Commencer maintenant », « Acheter » et « Accéder à la plateforme » envoient vers `<VITE_APP_ORIGIN>/login`.
+Ce dépôt contient deux surfaces, sans API ni base de données :
+
+- la **page marketing** (`index.html`). Les boutons « Commencer maintenant », « Acheter » et « Accéder à la plateforme » envoient vers `<VITE_APP_ORIGIN>/login`.
+- une **copie de l'espace business** (`admin.html`) pour le travail d'interface. Les écrans sont ceux du tableau de bord (vue d'ensemble, sessions, vérification, motifs, assistant, déclencheurs, réactions, activité, usage, réglages, développeurs). Les données sont un exemple en mémoire, le commerce **Maison Kofi**. Rien n'appelle l'application JokuBot.
+
+Ouvrir l'espace en local : http://127.0.0.1:5174/admin.html. Sur GitHub Pages : `admin.html`. La navigation est dans le fragment (`#/overview`, `#/sessions`, …). La documentation, le statut et la sécurité restent sur l'application (`VITE_APP_ORIGIN`).
+
+Les fichiers de l'espace sont dans `src/admin/`. Le style de ces écrans est `src/admin/styles.css` (rouge pour l'action principale et la marque, marine pour la structure). La page marketing reste noir et blanc, dans `src/styles.css`.
 
 ## Démarrer en local
 
@@ -31,12 +38,11 @@ VITE_APP_ORIGIN=http://127.0.0.1:5173
 
 ## Stack
 
-- **React 19** pour l'interface, sans routeur : le site est une seule page.
+- **React 19** pour l'interface. La page marketing n'a pas de routeur. L'espace business utilise React Router en fragment d'URL, pour fonctionner sur GitHub Pages.
+- **react-router-dom** pour l'espace business seulement.
 - **Vite** pour le serveur de développement et le build.
 - **TypeScript** en mode strict.
-- **CSS pur** dans un seul fichier, sans framework (pas de Tailwind).
-
-Aucune autre dépendance.
+- **CSS pur**, sans framework (pas de Tailwind). `src/styles.css` pour la page marketing, `src/admin/styles.css` pour l'espace business.
 
 ## Comment la page est construite
 

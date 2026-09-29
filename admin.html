@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JokuBot — espace business</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#f5f4f6" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <script>
+      (function () {
+        try {
+          var storedTheme = localStorage.getItem("mvs.theme");
+          var theme =
+            storedTheme === "light" || storedTheme === "dark"
+              ? storedTheme
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+        try {
+          var storedLocale = localStorage.getItem("mvs.locale");
+          document.documentElement.lang = storedLocale === "en" ? "en" : "fr";
+        } catch (e) {
+          document.documentElement.lang = "fr";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/admin/main.tsx"></script>
+  </body>
+</html>
