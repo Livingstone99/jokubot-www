@@ -246,7 +246,7 @@ export function LandingPage() {
             <div className="media-grid">
               <article className="media-card">
                 <div className="media-card-visual">
-                  <img src="/bot-assis.jpg" alt={t("content.1title")} loading="lazy" decoding="async" />
+                  <img src={siteHref("/agent-telephone.jpg")} alt={t("content.1title")} loading="lazy" decoding="async" />
                 </div>
                 <div className="media-card-body">
                   <h3>{t("content.1title")}</h3>
@@ -255,7 +255,7 @@ export function LandingPage() {
               </article>
               <article className="media-card">
                 <div className="media-card-visual">
-                  <img src="/bot-salut.jpg" alt={t("content.2title")} loading="lazy" decoding="async" />
+                  <img src={siteHref("/agent-salut.jpg")} alt={t("content.2title")} loading="lazy" decoding="async" />
                 </div>
                 <div className="media-card-body">
                   <h3>{t("content.2title")}</h3>
@@ -264,7 +264,7 @@ export function LandingPage() {
               </article>
               <article className="media-card">
                 <div className="media-card-visual">
-                  <img src="/bot-selfie.jpg" alt={t("content.3title")} loading="lazy" decoding="async" />
+                  <img src={siteHref("/agent-veste.jpg")} alt={t("content.3title")} loading="lazy" decoding="async" />
                 </div>
                 <div className="media-card-body">
                   <h3>{t("content.3title")}</h3>
