@@ -12,6 +12,7 @@ const fr = {
   "nav.pricing": "Tarifs",
   "nav.contact": "Contact",
   "nav.docs": "Docs",
+  "nav.login": "Connexion",
   "nav.openMenu": "Ouvrir le menu",
   "nav.closeMenu": "Fermer le menu",
   "nav.footerAria": "Pied de page",
@@ -61,7 +62,6 @@ const fr = {
 
   "content.eyebrow": "Conversation & contenu",
   "content.title": "Le bot écoute, comprend et crée",
-  "content.cta": "Découvrir la fonction",
   "content.1title": "Notes vocales",
   "content.1body":
     "Transcrit et comprend les messages vocaux des clients, puis répond avec la même naturalité qu'un humain.",
@@ -189,6 +189,7 @@ const en: Record<keyof typeof fr, string> = {
   "nav.pricing": "Pricing",
   "nav.contact": "Contact",
   "nav.docs": "Docs",
+  "nav.login": "Log in",
   "nav.openMenu": "Open menu",
   "nav.closeMenu": "Close menu",
   "nav.footerAria": "Footer",
@@ -238,7 +239,6 @@ const en: Record<keyof typeof fr, string> = {
 
   "content.eyebrow": "Conversation & content",
   "content.title": "The bot listens, understands and creates",
-  "content.cta": "See how it works",
   "content.1title": "Voice notes",
   "content.1body":
     "Transcribes and understands customers' voice messages, then replies with the same natural feel as a human.",

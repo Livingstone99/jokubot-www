@@ -46,33 +46,42 @@ export function LandingPage() {
       </a>
 
       <header className="land-top">
-        <div className="land-nav">
-          <a href={siteHref()} className="land-brand" aria-label={t("nav.brandAria")}>
-            <span className="mark">
-              <JokubotMark size={16} />
-            </span>
-            <JokubotWordmark />
-          </a>
-          <nav className="land-nav-links" aria-label={t("nav.aria")}>
-            <a href="#fonctionnalites">{t("nav.features")}</a>
-            <a href="#tarifs">{t("nav.pricing")}</a>
-            <a href="#contact">{t("nav.contact")}</a>
-          </nav>
-          <div className="land-nav-actions">
-            <a className="land-docs-link" href={appHref("/docs")}>
-              {t("nav.docs")}
+        <div className="land-bar">
+          <div className="land-nav">
+            <a href={siteHref()} className="land-brand" aria-label={t("nav.brandAria")}>
+              <span className="mark">
+                <JokubotMark size={16} />
+              </span>
+              <JokubotWordmark />
             </a>
+            <div className="land-nav-center">
+              <nav className="land-nav-links" aria-label={t("nav.aria")}>
+                <a href="#fonctionnalites">{t("nav.features")}</a>
+                <a href="#tarifs">{t("nav.pricing")}</a>
+                <a href="#contact">{t("nav.contact")}</a>
+              </nav>
+              <div className="land-nav-actions">
+                <a className="land-docs-link" href={appHref("/docs")}>
+                  {t("nav.docs")}
+                </a>
+                <a className="primary land-login-btn" href={appHref("/login")}>
+                  {t("nav.login")}
+                </a>
+                <button
+                  type="button"
+                  className="icon-btn land-menu-btn"
+                  aria-label={menuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((value) => !value)}
+                >
+                  {menuOpen ? <IconClose /> : <IconMenu />}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="land-prefs">
             <LocaleMenu />
             <ThemeToggle />
-            <button
-              type="button"
-              className="icon-btn land-menu-btn"
-              aria-label={menuOpen ? t("nav.closeMenu") : t("nav.openMenu")}
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((value) => !value)}
-            >
-              {menuOpen ? <IconClose /> : <IconMenu />}
-            </button>
           </div>
         </div>
         {menuOpen ? (
@@ -89,17 +98,21 @@ export function LandingPage() {
             <a href={appHref("/docs")} onClick={() => setMenuOpen(false)}>
               {t("nav.docs")}
             </a>
+            <a href={appHref("/login")} onClick={() => setMenuOpen(false)}>
+              {t("nav.login")}
+            </a>
           </nav>
         ) : null}
       </header>
 
       <main className="land-main">
         <section className="land-hero">
-          <div className="land-hero-bg" aria-hidden="true">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <video key={i} src={siteHref("/hero-bg.mp4")} autoPlay muted loop playsInline />
-            ))}
-          </div>
+          <img
+            className="land-hero-bg"
+            src={siteHref("/jokubot-couverture.png")}
+            alt=""
+            aria-hidden="true"
+          />
           <div className="land-hero-copy">
             <p className="eyebrow">{t("hero.eyebrow")}</p>
             <h1>{t("hero.title")}</h1>
@@ -110,19 +123,6 @@ export function LandingPage() {
                 <IconArrow />
               </a>
             </div>
-          </div>
-
-          <div className="land-hero-photo-wrap">
-            <video
-              className="land-hero-photo land-hero-video"
-              src={siteHref("/agent.mp4")}
-              aria-label={t("hero.photoAlt")}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-            />
           </div>
         </section>
 
@@ -251,10 +251,6 @@ export function LandingPage() {
                 <div className="media-card-body">
                   <h3>{t("content.1title")}</h3>
                   <p>{t("content.1body")}</p>
-                  <a className="card-link" href="#fonctionnalites">
-                    {t("content.cta")}
-                    <IconArrow />
-                  </a>
                 </div>
               </article>
               <article className="media-card">
@@ -264,10 +260,6 @@ export function LandingPage() {
                 <div className="media-card-body">
                   <h3>{t("content.2title")}</h3>
                   <p>{t("content.2body")}</p>
-                  <a className="card-link" href="#fonctionnalites">
-                    {t("content.cta")}
-                    <IconArrow />
-                  </a>
                 </div>
               </article>
               <article className="media-card">
@@ -277,10 +269,6 @@ export function LandingPage() {
                 <div className="media-card-body">
                   <h3>{t("content.3title")}</h3>
                   <p>{t("content.3body")}</p>
-                  <a className="card-link" href="#fonctionnalites">
-                    {t("content.cta")}
-                    <IconArrow />
-                  </a>
                 </div>
               </article>
             </div>
