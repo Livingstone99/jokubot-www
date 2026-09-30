@@ -94,16 +94,6 @@ export function AuthStory({ eyebrow }: { eyebrow?: string }) {
   const storyEyebrow = eyebrow ?? t("www.hero.eyebrow");
   return (
     <aside className="auth-story">
-      <video
-        className="auth-story-video"
-        src={siteHref("/agent.mp4")}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        aria-hidden="true"
-      />
       <div className="auth-story-copy">
         <a href={siteHref("/")} className="auth-story-brand">
           <span className="mark" aria-hidden="true">
