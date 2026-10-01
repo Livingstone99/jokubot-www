@@ -9,7 +9,7 @@ import { LoginPage } from "./pages/Login.js";
 import { OverviewPage } from "./pages/Overview.js";
 import { PurposesPage } from "./pages/Purposes.js";
 import { ReactionsPage } from "./pages/Reactions.js";
-import { SessionsPage } from "./pages/Sessions.js";
+import { MessagesPage } from "./pages/Messages.js";
 import { SettingsPage } from "./pages/Settings.js";
 import { SetupPage } from "./pages/Setup.js";
 import { SignupPage } from "./pages/Signup.js";
@@ -84,8 +84,8 @@ export function App() {
               }
             >
               <Route path="overview" element={<OverviewPage />} />
-              <Route path="messages" element={<SessionsPage />} />
-              <Route path="messages/:channel/:sender" element={<SessionsPage />} />
+              <Route path="messages" element={<MessagesPage />} />
+              <Route path="messages/:channel/:sender" element={<MessagesPage />} />
               <Route path="automations" element={<TriggersPage />} />
               <Route path="automations/editor" element={<TriggersPage />} />
               <Route path="automations/assistant" element={<SetupPage />} />

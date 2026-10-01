@@ -72,3 +72,22 @@ un point, ou quand l'existant ne permettait pas de le suivre à la lettre.
   messages reçus) ; l'accueil s'en tient au contenu demandé.
 - **Premiers pas.** La carte de démarrage en 4 étapes de la version
   précédente n'est pas dans le cahier des charges : elle est retirée.
+
+## Tâche 5 — Messages
+
+- **Envoi à la main : non disponible.** L'API actuelle permet de lire les
+  conversations (`conversations`, `conversation`) mais n'a aucun appel pour
+  envoyer un message. La zone « Écrire une réponse » et le bouton « Envoyer »
+  sont affichés mais désactivés, avec une phrase qui l'explique. Le toast
+  « Message envoyé » et l'erreur « Le message n'est pas parti… » seront
+  branchés quand l'API proposera l'envoi. **À valider.**
+- **Archivage.** Mémorisé sur l'appareil, comme l'état « lu ». Une
+  conversation archivée revient si un nouveau message arrive. Un toast propose
+  « Annuler » juste après l'archivage.
+- **Marquer comme lu.** Ouvrir une conversation la marque comme lue ; un
+  bouton permet aussi de le faire, et « Tout marquer comme lu » dans la liste.
+- **Laisser l'assistant répondre.** Ouvre l'assistant des réponses
+  automatiques (`#/automations/assistant`), qui crée une réponse automatique
+  à partir d'une description.
+- **Statut dans l'en-tête de conversation.** C'est l'état de connexion du
+  canal (Connecté / Non connecté).
