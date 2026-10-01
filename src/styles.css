@@ -180,6 +180,12 @@ img {
   transform: translateY(-1px);
 }
 
+/* Bouton affiché sans lien : pas d'effet de clic. */
+.primary.is-static {
+  cursor: default;
+  transform: none;
+}
+
 .secondary {
   background: transparent;
   color: var(--text);

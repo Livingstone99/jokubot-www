@@ -473,10 +473,10 @@ export function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <a className="primary" href={appHref("/login")}>
+              <span className="primary is-static">
                 {t("platform.cta")}
                 <IconArrow />
-              </a>
+              </span>
             </div>
           </div>
         </section>
