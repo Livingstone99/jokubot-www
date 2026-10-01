@@ -3,33 +3,33 @@
 :root,
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #f7f7f7;
+  --bg: #ffffff;
   --bg-elev: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f2f2f2;
-  --stroke: #e6e6e6;
+  --surface-2: #f5f5f5;
+  --stroke: #e5e5e5;
   --stroke-strong: #d4d4d4;
   --text: #0a0a0a;
-  --text-dim: #525252;
+  --text-dim: #6b6b6b;
   --text-faint: #6b6b6b;
-  --accent: #c8102e;
-  --accent-hover: #a80e26;
-  --accent-soft: rgba(200, 16, 46, 0.1);
+  --accent: #0a0a0a;
+  --accent-hover: #262626;
+  --accent-soft: rgba(10, 10, 10, 0.06);
   --accent-ink: #ffffff;
   --secondary: #0a0a0a;
   --secondary-hover: #262626;
   --secondary-fg: #0a0a0a;
   --secondary-soft: rgba(0, 0, 0, 0.08);
   --secondary-ink: #ffffff;
-  --ok: #0d8a5b;
-  --ok-soft: rgba(13, 138, 91, 0.1);
+  --ok: #1a9d55;
+  --ok-soft: rgba(26, 157, 85, 0.1);
   --warn: #9a7408;
   --warn-soft: rgba(184, 130, 16, 0.12);
-  --danger: #b42318;
-  --danger-soft: rgba(180, 35, 24, 0.1);
-  --whatsapp: #1fad5a;
-  --telegram: #2f7de1;
-  --radius: 14px;
+  --danger: #d7192d;
+  --danger-soft: rgba(215, 25, 45, 0.08);
+  --whatsapp: #25d366;
+  --telegram: #229ed9;
+  --radius: 16px;
   --font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -37,38 +37,44 @@
   --text-xs: 12px;
   --text-sm: 13px;
   --text-md: 14px;
-  --text-base: 16px;
+  --text-base: 15px;
   --text-lg: 18px;
   --text-xl: 22px;
   --text-2xl: 24px;
-  --text-3xl: 32px;
+  --text-3xl: 28px;
   --text-stat: 36px;
   --shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
-  --auth-story-bg: #f7f7f7;
+  --auth-story-bg: #f5f5f5;
   --auth-story-text: #0a0a0a;
-  --auth-story-dim: #525252;
+  --auth-story-dim: #6b6b6b;
   --overlay: rgba(10, 10, 10, 0.4);
   --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3E%3Cpath stroke='%23525252' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  /* Alias du cahier des charges */
+  --bg2: var(--surface-2);
+  --tx: var(--text);
+  --tx2: var(--text-dim);
+  --bd: var(--stroke);
+  --rd: #d7192d;
+  --rd-soft: rgba(215, 25, 45, 0.08);
+  --dot-ok: #1a9d55;
+  --t-fast: 200ms;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #050505;
+  --bg: #0a0a0a;
   --bg-elev: #0a0a0a;
   --surface: #111111;
-  --surface-2: #1a1a1a;
-  --stroke: #262626;
-  --stroke-strong: #333333;
-  --text: #fafafa;
-  --text-dim: #a3a3a3;
-  --text-faint: #8c8c8c;
-  --accent: #ff5a6e;
-  --accent-hover: #ff7385;
-  /* Rouge plein pour les fonds de bouton : garde le texte blanc lisible. */
-  --accent-solid: #d81b3a;
-  --accent-solid-hover: #e3304c;
-  --accent-soft: rgba(239, 45, 68, 0.16);
-  --accent-ink: #ffffff;
+  --surface-2: #161616;
+  --stroke: #2a2a2a;
+  --stroke-strong: #3a3a3a;
+  --text: #f5f5f5;
+  --text-dim: #9a9a9a;
+  --text-faint: #9a9a9a;
+  --accent: #f5f5f5;
+  --accent-hover: #d4d4d4;
+  --accent-soft: rgba(245, 245, 245, 0.08);
+  --accent-ink: #0a0a0a;
   --secondary: #262626;
   --secondary-hover: #333333;
   --secondary-fg: #e5e5e5;
@@ -78,16 +84,20 @@
   --ok-soft: rgba(62, 207, 142, 0.14);
   --warn: #e2b23c;
   --warn-soft: rgba(226, 178, 60, 0.14);
-  --danger: #f2695f;
-  --danger-soft: rgba(242, 105, 95, 0.14);
+  --danger: #ff5a6a;
+  --danger-soft: rgba(255, 90, 106, 0.12);
   --whatsapp: #25d366;
-  --telegram: #5aa3ef;
+  --telegram: #229ed9;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
-  --auth-story-bg: #0a0a0a;
-  --auth-story-text: #fafafa;
-  --auth-story-dim: #a3a3a3;
+  --auth-story-bg: #161616;
+  --auth-story-text: #f5f5f5;
+  --auth-story-dim: #9a9a9a;
   --overlay: rgba(0, 0, 0, 0.62);
   --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 16 16'%3E%3Cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  /* Rouge éclairci en sombre pour rester lisible (AA) sur #0a0a0a. */
+  --rd: #ff5a6a;
+  --rd-soft: rgba(255, 90, 106, 0.12);
+  --dot-ok: #3ecf8e;
 }
 
 * {
@@ -113,7 +123,8 @@ body {
 }
 
 a {
-  color: var(--accent);
+  color: var(--text);
+  text-underline-offset: 3px;
 }
 
 h1 {
@@ -163,7 +174,7 @@ textarea {
   width: 8px;
   height: 8px;
   border-radius: 99px;
-  background: var(--accent-solid, var(--accent));
+  background: var(--accent);
   margin-right: 10px;
 }
 
@@ -1328,7 +1339,7 @@ textarea:focus {
 }
 
 .primary {
-  background: var(--accent-solid, var(--accent));
+  background: var(--accent);
   color: var(--accent-ink);
 }
 
@@ -1339,7 +1350,7 @@ textarea:focus {
 }
 
 .primary:hover {
-  background: var(--accent-solid-hover, var(--accent-hover));
+  background: var(--accent-hover);
 }
 
 .secondary:hover {
@@ -1362,7 +1373,7 @@ textarea:focus {
 }
 
 .primary:disabled:hover {
-  background: var(--accent-solid, var(--accent));
+  background: var(--accent);
 }
 
 .secondary:disabled:hover {
@@ -2185,7 +2196,7 @@ pre {
 }
 
 .connect-steps li.is-current span {
-  background: var(--accent-solid, var(--accent));
+  background: var(--accent);
   color: var(--accent-ink);
 }
 
@@ -2299,7 +2310,7 @@ pre {
 }
 
 .connect-howto li.is-current::before {
-  background: var(--accent-solid, var(--accent));
+  background: var(--accent);
   color: var(--accent-ink);
   border-color: transparent;
 }
@@ -4388,7 +4399,7 @@ pre.reaction-code {
   inset: 0;
   width: 40%;
   border-radius: inherit;
-  background: var(--accent-solid, var(--accent));
+  background: var(--accent);
 }
 
 .first-steps-list {
@@ -4429,7 +4440,7 @@ pre.reaction-code {
 
 .is-current .step-badge {
   border-color: var(--accent);
-  background: var(--accent-solid, var(--accent));
+  background: var(--accent);
   color: #ffffff;
 }
 
@@ -4616,5 +4627,154 @@ pre.reaction-code {
   .primary:active:not(:disabled),
   .secondary:active:not(:disabled) {
     transform: none;
+  }
+}
+
+/* =====================================================================
+   Tâche 1 — Base du design : noir, blanc et un peu de rouge.
+   Le rouge (--rd) ne sert qu'aux badges, à la barre du menu actif,
+   aux actions dangereuses et au pic des graphiques.
+   ===================================================================== */
+
+:root {
+  --rd-solid: #d7192d;
+  --rd-solid-hover: #b8121f;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.55;
+  background: var(--bg);
+}
+
+h1,
+.page h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  letter-spacing: -0.01em;
+}
+
+/* Focus clavier visible partout : contour rouge de 2 px. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--rd);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* Boutons : primaire noir, contour, danger rouge. Pilule, 44 px de haut. */
+.primary,
+.secondary,
+.danger {
+  min-height: 44px;
+  border-radius: 999px;
+  font-weight: 600;
+  transition:
+    background-color var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out),
+    transform 90ms var(--ease-out);
+}
+
+.primary.compact,
+.secondary.compact,
+.danger.compact {
+  min-height: 36px;
+  padding: 6px 14px;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--stroke-strong);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--text-dim);
+}
+
+.danger {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--rd-solid);
+  color: #ffffff;
+  border: 1px solid var(--rd-solid);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--rd-solid-hover);
+  border-color: var(--rd-solid-hover);
+}
+
+.danger-text {
+  color: var(--rd);
+}
+
+.primary:disabled,
+.secondary:disabled,
+.danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Cartes et champs */
+.panel,
+.auth-card {
+  border-radius: 16px;
+  border-color: var(--stroke);
+  box-shadow: none;
+}
+
+input,
+select,
+textarea {
+  border-radius: 12px;
+  border-color: var(--stroke);
+  background: var(--bg);
+  transition: border-color var(--t-fast) var(--ease-out);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--text);
+  box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  h1,
+  .page h1 {
+    font-size: 23px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

@@ -10,11 +10,15 @@ import {
 import { useT } from "./locale.js";
 
 export type Theme = "light" | "dark";
+/** Choix de l'utilisateur : un thème fixe, ou « auto » pour suivre l'appareil. */
+export type ThemeMode = Theme | "auto";
 
 const THEME_KEY = "mvs.theme";
 
 type ThemeState = {
   theme: Theme;
+  mode: ThemeMode;
+  setMode: (mode: ThemeMode) => void;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 };
@@ -53,7 +57,39 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return readTheme();
   });
 
+  const [mode, setModeState] = useState<ThemeMode>(() => {
+    try {
+      const stored = localStorage.getItem(THEME_KEY);
+      return stored === "light" || stored === "dark" ? stored : "auto";
+    } catch {
+      return "auto";
+    }
+  });
+
+  const setMode = useCallback((next: ThemeMode) => {
+    setModeState(next);
+    if (next === "auto") {
+      try {
+        localStorage.removeItem(THEME_KEY);
+      } catch {
+        // Ignore persistence failures.
+      }
+      const resolved = systemTheme();
+      setThemeState(resolved);
+      applyTheme(resolved);
+      return;
+    }
+    setThemeState(next);
+    applyTheme(next);
+    try {
+      localStorage.setItem(THEME_KEY, next);
+    } catch {
+      // Ignore persistence failures.
+    }
+  }, []);
+
   const setTheme = useCallback((next: Theme) => {
+    setModeState(next);
     setThemeState(next);
     applyTheme(next);
     try {
@@ -88,8 +124,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ theme, setTheme, toggleTheme }),
-    [theme, setTheme, toggleTheme],
+    () => ({ theme, mode, setMode, setTheme, toggleTheme }),
+    [theme, mode, setMode, setTheme, toggleTheme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

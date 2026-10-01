@@ -62,7 +62,7 @@ const en = {
   "theme.toDark": "Switch to dark theme",
   "theme.light": "Light",
   "theme.dark": "Dark",
-  "theme.hint": "Light or dark. Saved on this device.",
+  "theme.hint": "Light, dark, or follow your device. Saved on this device.",
 
   "nav.operate": "Operate",
   "nav.workspace": "Workspace",
@@ -1471,6 +1471,7 @@ const en = {
   "home.qKeys": "API keys",
   "home.qAssistant": "Assistant",
   "home.figures": "Key figures",
+  "theme.auto": "Automatic",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -1532,7 +1533,7 @@ const fr: Record<MessageKey, string> = {
   "theme.toDark": "Passer au thème sombre",
   "theme.light": "Clair",
   "theme.dark": "Sombre",
-  "theme.hint": "Clair ou sombre. Enregistré sur cet appareil.",
+  "theme.hint": "Clair, sombre ou comme votre appareil. Enregistré sur cet appareil.",
 
   "nav.operate": "Exploitation",
   "nav.workspace": "Espace",
@@ -2974,6 +2975,7 @@ const fr: Record<MessageKey, string> = {
   "home.qKeys": "Clés API",
   "home.qAssistant": "Assistant",
   "home.figures": "Chiffres clés",
+  "theme.auto": "Automatique",
 };
 
 const catalogs: Record<Locale, Record<MessageKey, string>> = { en, fr };
