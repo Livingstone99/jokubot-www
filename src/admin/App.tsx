@@ -10,6 +10,7 @@ import { OverviewPage } from "./pages/Overview.js";
 import { PurposesPage } from "./pages/Purposes.js";
 import { ReactionsPage } from "./pages/Reactions.js";
 import { MessagesPage } from "./pages/Messages.js";
+import { AutomationsLayout, RuleFormPage, RulesPage } from "./pages/Automations.js";
 import { SettingsPage } from "./pages/Settings.js";
 import { SetupPage } from "./pages/Setup.js";
 import { SignupPage } from "./pages/Signup.js";
@@ -86,10 +87,14 @@ export function App() {
               <Route path="overview" element={<OverviewPage />} />
               <Route path="messages" element={<MessagesPage />} />
               <Route path="messages/:channel/:sender" element={<MessagesPage />} />
-              <Route path="automations" element={<TriggersPage />} />
-              <Route path="automations/editor" element={<TriggersPage />} />
-              <Route path="automations/assistant" element={<SetupPage />} />
-              <Route path="automations/reactions" element={<ReactionsPage />} />
+              <Route path="automations" element={<AutomationsLayout />}>
+                <Route index element={<RulesPage />} />
+                <Route path="new" element={<RuleFormPage />} />
+                <Route path="rule/:id" element={<RuleFormPage />} />
+                <Route path="assistant" element={<SetupPage />} />
+                <Route path="reactions" element={<ReactionsPage />} />
+                <Route path="editor" element={<TriggersPage />} />
+              </Route>
               <Route path="channels" element={<SettingsPage />} />
               <Route path="usage" element={<UsagePage />} />
               <Route path="settings" element={<SettingsPage />} />

@@ -91,3 +91,28 @@ un point, ou quand l'existant ne permettait pas de le suivre à la lettre.
   à partir d'une description.
 - **Statut dans l'en-tête de conversation.** C'est l'état de connexion du
   canal (Connecté / Non connecté).
+
+## Tâche 6 — Réponses automatiques
+
+- **Organisation en onglets.** La page regroupe : « Règles » (nouvelle liste
+  et formulaire en 3 étapes), « Assistant » (assistant existant),
+  « Réponses intelligentes » (anciennes Réactions : formules, requêtes HTTP,
+  agent IA) et « Éditeur complet » (ancien éditeur de déclencheurs, pour les
+  options avancées : listes blanches/noires, webhook, code de vérification,
+  ordre des règles). Rien n'est perdu.
+- **Options non prises en charge par l'API.** « Premier message d'un client »,
+  « En dehors des heures de travail », « Répondre par une image » et « Menu à
+  boutons » n'existent pas côté serveur. Elles sont affichées, désactivées,
+  avec la mention « Bientôt disponible ». **À valider.**
+- **Options ajoutées.** « Le message est exactement un mot » et « N'importe
+  quel message » correspondent à ce que l'API sait déjà faire.
+- **Modifier.** Une règle « simple » (mot-clé ou tout message, réponse par
+  texte) s'ouvre dans le formulaire en 3 étapes ; les autres s'ouvrent dans
+  l'Éditeur complet.
+- **Dupliquer.** La copie est créée coupée, pour ne pas répondre deux fois.
+- **Nom de la règle.** Proposé automatiquement (« Mot-clé « horaires » ») si
+  le champ reste vide.
+- **Vocabulaire.** « Quand… / Alors… » est utilisé dans les nouveaux écrans,
+  les descriptions et le menu. Les écrans existants repris tels quels
+  (Éditeur complet, Réponses intelligentes) gardent encore une partie de
+  l'ancien vocabulaire. **À reprendre si besoin.**
