@@ -23,6 +23,8 @@ import {
   proofLabel,
 } from "../ui.js";
 
+type Translate = ReturnType<typeof useT>;
+
 export function OverviewPage() {
   const { me } = useAuth();
   const t = useT();
@@ -34,7 +36,7 @@ export function OverviewPage() {
       .overview()
       .then(setData)
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Could not load overview.");
+        setError(err instanceof Error ? err.message : t("overview.loadError"));
       });
   }, []);
 
@@ -59,21 +61,21 @@ export function OverviewPage() {
     <section className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Overview</p>
-          <h1>{tenant?.name ?? "Your workspace"}</h1>
+          <p className="eyebrow">{t("nav.overview")}</p>
+          <h1>{tenant?.name ?? t("overview.workspace")}</h1>
           <p className="lede">
             {channelsReady
-              ? "Customers send a one-time code from WhatsApp or Telegram. You do not reply to complete the check."
-              : "Connect WhatsApp or Telegram. One channel is enough to issue codes."}
+              ? t("overview.ledeReady")
+              : t("overview.ledeSetup")}
           </p>
           <ChannelReadyHint />
         </div>
         <div className="page-actions">
           <Link className="secondary" to="/triggers?new=1">
-            Create trigger
+            {t("triggers.create")}
           </Link>
           <Link className="primary" to="/reactions?new=1">
-            Create reaction
+            {t("reactions.create")}
           </Link>
         </div>
       </header>
@@ -91,10 +93,9 @@ export function OverviewPage() {
       {gaps.length > 0 ? (
         <div className="banner banner-warn">
           <div>
-            <strong>Inbound messages are paused</strong>
+            <strong>{t("overview.pausedTitle")}</strong>
             <p>
-              {gaps.join(" · ")}. New codes will not complete until the gateway
-              is receiving WhatsApp and Telegram messages again.
+              {gaps.join(" · ")}{t("lit.overview.31")}
             </p>
           </div>
         </div>
@@ -114,35 +115,35 @@ export function OverviewPage() {
 
       <div className="stat-grid">
           <Stat
-            label="Verified"
-            hint="Last 24 hours"
+            label={t("ui.verified")}
+            hint={t("overview.statLast24h")}
             value={data?.verifiedLast24h}
             detail={
               data
-                ? `${data.issuedLast24h} issued in the same window`
-                : "Sessions that completed"
+                ? t("overview.issuedDetail", { count: data.issuedLast24h })
+                : t("overview.issuedHint")
             }
           />
         <Stat
-          label="Waiting"
-          hint="Live now"
+          label={t("ui.waiting")}
+          hint={t("overview.statLive")}
           value={data?.pending}
-          detail="Codes still unused"
+          detail={t("overview.waitingDetail")}
         />
         <Stat
-          label="Expired"
-          hint="All time"
+          label={t("ui.expired")}
+          hint={t("overview.statAllTime")}
           value={data?.expired}
-          detail="Issued but never completed"
+          detail={t("overview.expiredDetail")}
         />
         <Stat
-          label="Inbound"
-          hint="Last 24 hours"
+          label={t("overview.statInbound")}
+          hint={t("overview.statLast24h")}
           value={data?.inboundLast24h}
           detail={
             exceptionCount
-              ? `${exceptionCount} did not verify`
-              : "Messages the gateway forwarded"
+              ? t("overview.inboundExceptions", { count: exceptionCount })
+              : t("overview.inboundDetail")
           }
         />
         {data?.credits?.hasPlan ? (
@@ -168,8 +169,8 @@ export function OverviewPage() {
         <article className="panel">
           <header className="panel-head">
             <div>
-              <h2>Pipeline</h2>
-              <p className="hint">Your channels and inbound message health.</p>
+              <h2>{t("overview.pipeline")}</h2>
+              <p className="hint">{t("overview.pipelineHint")}</p>
             </div>
           </header>
           <ul className="health-list">
@@ -190,8 +191,8 @@ export function OverviewPage() {
               actions={tenant ? <ChannelLinkControls channel="telegram" /> : null}
             />
             <HealthRow
-              name="Inbound gateway"
-              detail="Optional WhatsApp path through the inbound gateway"
+              name={t("overview.gatewayName")}
+              detail={t("overview.gatewayDetail")}
               tone={
                 !data
                   ? "neutral"
@@ -201,19 +202,18 @@ export function OverviewPage() {
                       ? "warn"
                       : "neutral"
               }
-              status={gatewayLabel(data)}
+              status={gatewayLabel(data, t)}
             />
             <HealthRow
               name="Completion webhook"
-              detail={tenant?.webhookUrl ?? "Your backend will not be notified"}
+              detail={tenant?.webhookUrl ?? t("overview.webhookMissing")}
               tone={tenant?.webhookUrl ? "ok" : "neutral"}
-              status={tenant?.webhookUrl ? "Configured" : "Optional"}
+              status={tenant?.webhookUrl ? t("overview.configured") : t("overview.optional")}
             />
           </ul>
           {data && !data.gateway.reachable ? (
             <p className="hint health-note">
-              The inbound gateway is offline. Phone-linked WhatsApp and
-              connected Telegram still receive messages here.
+              {t("overview.gatewayOffline")}
             </p>
           ) : null}
         </article>
@@ -221,19 +221,19 @@ export function OverviewPage() {
         <article className="panel">
           <header className="panel-head">
             <div>
-              <h2>What was proved</h2>
-              <p className="hint">Verified sessions in the last 24 hours.</p>
+              <h2>{t("overview.proofTitle")}</h2>
+              <p className="hint">{t("overview.proofHint")}</p>
             </div>
           </header>
 
           {proofTotal === 0 ? (
             <EmptyState
-              title="No completed proofs yet"
-              body="When a user sends the one-time code, we record whether the channel disclosed a phone number or only a messaging identity."
+              title={t("overview.proofEmptyTitle")}
+              body={t("overview.proofEmptyBody")}
             />
           ) : (
             <div>
-              <div className="proof-bar" role="img" aria-label="Proof mix">
+              <div className="proof-bar" role="img" aria-label={t("overview.proofMix")}>
                 {proof.phoneNumber > 0 ? (
                   <span className="proof-phone" style={{ flexGrow: proof.phoneNumber }} />
                 ) : null}
@@ -261,13 +261,11 @@ export function OverviewPage() {
               </div>
               {proof.messagingIdentity > 0 ? (
                 <p className="callout">
-                  Messaging identity confirms control of the account. It is not a
-                  phone number. If you sell phone verification, do not treat
-                  these as equivalent.
+                  {t("overview.proofCallout")}
                 </p>
               ) : (
                 <p className="hint">
-                  All completed proofs in this window disclosed a phone number.
+                  {t("overview.proofAllPhone")}
                 </p>
               )}
             </div>
@@ -278,26 +276,26 @@ export function OverviewPage() {
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>Recent verifications</h2>
-            <p className="hint">Latest sessions issued from this workspace.</p>
+            <h2>{t("overview.recentTitle")}</h2>
+            <p className="hint">{t("overview.recentHint")}</p>
           </div>
           <StartVerificationCta className="text-link" ready={channelsReady} as="text">
-            Issue a code
+            {t("overview.issueCode")}
           </StartVerificationCta>
         </header>
         {!data ? (
           <div className="skeleton-table" aria-hidden="true" />
         ) : data.recentSessions.length === 0 ? (
           <EmptyState
-            title="No sessions yet"
+            title={t("overview.noSessionsTitle")}
             body={
               channelsReady
-                ? "Generate a one-time code, then have the customer send it from WhatsApp or Telegram. This page updates the moment it arrives."
-                : "Connect a channel above, then generate a one-time code for your customer to send."
+                ? t("overview.noSessionsReady")
+                : t("overview.noSessionsSetup")
             }
             action={
               <StartVerificationCta className="primary compact" ready={channelsReady}>
-                Start a verification
+                {t("overview.startVerify")}
               </StartVerificationCta>
             }
           />
@@ -306,12 +304,12 @@ export function OverviewPage() {
             <table>
               <thead>
                 <tr>
-                  <th>When</th>
-                  <th>Channel</th>
-                  <th>Status</th>
-                  <th>Proved</th>
-                  <th>Identity</th>
-                  <th>Client ref</th>
+                  <th>{t("overview.colWhen")}</th>
+                  <th>{t("common.channel")}</th>
+                  <th>{t("nav.status")}</th>
+                  <th>{t("overview.colProved")}</th>
+                  <th>{t("overview.colIdentity")}</th>
+                  <th>{t("overview.colClientRef")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -344,21 +342,21 @@ export function OverviewPage() {
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>Inbound exceptions</h2>
+            <h2>{t("overview.exceptionsTitle")}</h2>
             <p className="hint">
-              Messages the gateway forwarded that did not complete a session.
+              {t("overview.exceptionsHint")}
             </p>
           </div>
           <Link className="text-link" to="/activity">
-            Full log
+            {t("overview.fullLog")}
           </Link>
         </header>
         {!data ? (
           <div className="skeleton-table" aria-hidden="true" />
         ) : exceptionCount === 0 ? (
           <EmptyState
-            title="No failed inbound in the last 24 hours"
-            body="Unknown tokens, expired codes, and channel mismatches will show up here."
+            title={t("overview.exceptionsEmptyTitle")}
+            body={t("overview.exceptionsEmptyBody")}
           />
         ) : (
           <div>
@@ -378,10 +376,10 @@ export function OverviewPage() {
                 <table>
                   <thead>
                     <tr>
-                      <th>Received</th>
-                      <th>Channel</th>
-                      <th>Sender</th>
-                      <th>Outcome</th>
+                      <th>{t("overview.colReceived")}</th>
+                      <th>{t("common.channel")}</th>
+                      <th>{t("overview.colSender")}</th>
+                      <th>{t("overview.colOutcome")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -405,7 +403,7 @@ export function OverviewPage() {
                 </table>
               </div>
             ) : (
-              <p className="hint">See the full log for older exceptions in this window.</p>
+              <p className="hint">{t("overview.exceptionsOlder")}</p>
             )}
           </div>
         )}
@@ -450,6 +448,7 @@ function HealthRow({
   counts?: { pending: number; verified: number; expired: number };
   actions?: ReactNode;
 }) {
+  const t = useT();
   return (
     <li className="health-row">
       <span className={`tone tone-${tone}`} aria-hidden="true" />
@@ -459,7 +458,7 @@ function HealthRow({
         {actions}
       </div>
       <span className="health-counts">
-        {counts ? `${counts.verified} verified · ${counts.pending} waiting` : ""}
+        {counts ? t("overview.healthCounts", { verified: counts.verified, pending: counts.pending }) : ""}
       </span>
       <span className={`health-status tone-text-${tone}`}>
         {tone === "ok" ? <ConnectedMark /> : null}
@@ -469,7 +468,7 @@ function HealthRow({
   );
 }
 
-function gatewayLabel(data: Overview | null): string {
+function gatewayLabel(data: Overview | null, t: Translate): string {
   if (!data) {
     return "Checking";
   }
@@ -477,7 +476,7 @@ function gatewayLabel(data: Overview | null): string {
     return "Ready";
   }
   if (data.gateway.live) {
-    return "Live, not ready";
+    return t("overview.liveNotReady");
   }
   return "Offline";
 }
@@ -493,6 +492,7 @@ function StartVerificationCta({
   ready: boolean;
   as?: "button" | "text";
 }) {
+  const t = useT();
   if (ready) {
     return (
       <Link className={className} to="/verify">
@@ -500,7 +500,7 @@ function StartVerificationCta({
       </Link>
     );
   }
-  const hint = "Connect WhatsApp or Telegram first";
+  const hint = t("nav.channelHint");
   if (as === "text") {
     return (
       <span className={`${className} is-disabled`} title={hint} aria-disabled="true">

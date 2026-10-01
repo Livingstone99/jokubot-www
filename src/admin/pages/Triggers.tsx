@@ -19,6 +19,8 @@ import { useAuth } from "../auth.js";
 import { useT } from "../locale.js";
 import { ChannelBadge, EmptyState, channelLabel, formatWhen } from "../ui.js";
 
+type Translate = ReturnType<typeof useT>;
+
 type Draft = {
   name: string;
   channel: TriggerChannel;
@@ -37,7 +39,7 @@ type Draft = {
   enabled: boolean;
 };
 
-const emptyDraft = (channel: TriggerChannel = "whatsapp"): Draft => ({
+const emptyDraft = (channel: TriggerChannel = "whatsapp", t: Translate): Draft => ({
   name: "",
   channel,
   matchType: "keyword",
@@ -50,7 +52,7 @@ const emptyDraft = (channel: TriggerChannel = "whatsapp"): Draft => ({
   actionType: "reply",
   replyMode: "text",
   replySource: "message",
-  replyBody: "Hi {{name}}, we received your message.",
+  replyBody: t("triggers.textPlaceholder"),
   reactionId: "",
   enabled: true,
 });
@@ -110,7 +112,7 @@ export function TriggersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<Trigger[] | null>(null);
   const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [draft, setDraft] = useState<Draft>(() => emptyDraft(undefined, t));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -146,7 +148,7 @@ export function TriggersPage() {
 
   useEffect(() => {
     void refresh().catch((err: unknown) => {
-      setError(err instanceof Error ? err.message : "Could not load triggers.");
+      setError(err instanceof Error ? err.message : t("triggers.loadError"));
     });
   }, []);
 
@@ -159,7 +161,7 @@ export function TriggersPage() {
         : me?.tenant.telegramLinked && !me.tenant.whatsappLinked
           ? "telegram"
           : "whatsapp";
-    setDraft(emptyDraft(channel));
+    setDraft(emptyDraft(channel, t));
     setOpen(true);
     setConfirmDeleteId(null);
     setError(null);
@@ -235,7 +237,7 @@ export function TriggersPage() {
       closeForm();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save trigger.");
+      setError(err instanceof Error ? err.message : t("triggers.saveError"));
     } finally {
       setBusy(false);
     }
@@ -247,7 +249,7 @@ export function TriggersPage() {
       await api.updateTrigger(trigger.id, { enabled: !trigger.enabled });
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update trigger.");
+      setError(err instanceof Error ? err.message : t("triggers.updateError"));
     }
   }
 
@@ -261,7 +263,7 @@ export function TriggersPage() {
       setConfirmDeleteId(null);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete trigger.");
+      setError(err instanceof Error ? err.message : t("triggers.deleteError"));
     }
   }
 
@@ -307,7 +309,7 @@ export function TriggersPage() {
       setItems(result.items);
       savedOrder.current = orderKey(result.items);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not reorder triggers.");
+      setError(err instanceof Error ? err.message : t("triggers.reorderError"));
       await refresh();
     } finally {
       setReordering(false);
@@ -335,7 +337,7 @@ export function TriggersPage() {
       });
       setSimulation(result);
     } catch (err) {
-      setTestError(err instanceof Error ? err.message : "Could not test this message.");
+      setTestError(err instanceof Error ? err.message : t("triggers.testError"));
     } finally {
       setTestBusy(false);
     }
@@ -355,26 +357,22 @@ export function TriggersPage() {
     <section className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Triggers</p>
-          <h1>When someone messages you</h1>
+          <p className="eyebrow">{t("nav.triggers")}</p>
+          <h1>{t("triggers.title")}</h1>
           <p className="lede">
-            Match inbound WhatsApp or Telegram text, photos, voice notes, and
-            files, then notify your app or send a reply. Verification codes skip
-            these rules unless you add one that matches a verification code.
-            Built-in verification still runs on its own.
+            {t("lit.triggers.47")}
           </p>
         </div>
         <div className="page-actions">
           <button type="button" className="primary" onClick={startCreate}>
-            New trigger
+            {t("triggers.new")}
           </button>
         </div>
       </header>
 
       {!whatsappReady && !telegramReady ? (
         <p className="banner banner-warn">
-          Connect a channel from <Link to="/overview">Home</Link> before replies can go out.
-          Verification codes still work once the channel is linked.
+          {t("lit.triggers.48")}{' '}<Link to="/overview">{t("common.home")}</Link>{' '}{t("lit.triggers.49")}
         </p>
       ) : null}
 
@@ -396,8 +394,8 @@ export function TriggersPage() {
         >
           <header className="panel-head">
             <div>
-              <h2 id="trigger-form-title">{editingId ? "Edit trigger" : "New trigger"}</h2>
-              <p className="hint">Place this rule with the drag handle after you save.</p>
+              <h2 id="trigger-form-title">{editingId ? t("triggers.edit") : t("triggers.new")}</h2>
+              <p className="hint">{t("triggers.formHint")}</p>
             </div>
           </header>
           <div className="stack overlay-card-body">
@@ -408,18 +406,18 @@ export function TriggersPage() {
           ) : null}
           <div className="row">
             <label>
-              Name
+              {t("common.name")}
               <input
                 value={draft.name}
                 onChange={(event) =>
                   setDraft((current) => ({ ...current, name: event.target.value }))
                 }
-                placeholder="Help keyword"
+                placeholder={t("triggers.namePlaceholder")}
                 required
               />
             </label>
             <label>
-              Listen on
+              {t("triggers.listenOn")}
               <select
                 value={draft.channel}
                 onChange={(event) =>
@@ -429,24 +427,24 @@ export function TriggersPage() {
                   }))
                 }
               >
-                <option value="both">WhatsApp and Telegram</option>
-                <option value="whatsapp">WhatsApp only</option>
-                <option value="telegram">Telegram only</option>
+                <option value="both">{t("ui.whatsappAndTelegram")}</option>
+                <option value="whatsapp">{t("triggers.waOnly")}</option>
+                <option value="telegram">{t("triggers.tgOnly")}</option>
               </select>
               <span className="hint">
                 {draft.channel === "both"
-                  ? "One rule. A reply goes back on the app the customer wrote from."
-                  : `Only ${channelLabel(draft.channel)} messages match this rule.`}
+                  ? t("triggers.bothHint")
+                  : t("lit.triggers.onlyChannel", { channel: channelLabel(draft.channel) })}
               </span>
             </label>
           </div>
 
           <section className="trigger-section">
-            <h3>When</h3>
+            <h3>{t("overview.colWhen")}</h3>
             <fieldset className="check-fieldset">
-              <legend>Listen for</legend>
+              <legend>{t("triggers.listenFor")}</legend>
               <div className="check-group">
-                {LISTEN_OPTIONS.map((option) => (
+                {listenOptions(t).map((option) => (
                   <label key={option.value} className="check-row">
                     <input
                       type="checkbox"
@@ -463,13 +461,12 @@ export function TriggersPage() {
                 ))}
               </div>
               <span className="hint">
-                Photos use the caption for keywords. Voice notes are transcribed
-                first. Files use the caption or readable text.
+                {t("triggers.listenHint")}
               </span>
             </fieldset>
             <div className="row">
               <label>
-                Message
+                {t("triggers.message")}
                 <select
                   value={draft.matchType}
                   onChange={(event) => {
@@ -481,26 +478,24 @@ export function TriggersPage() {
                     }));
                   }}
                 >
-                  <option value="keyword">This keyword</option>
-                  <option value="any">Any message</option>
-                  <option value="verification_token">A verification code</option>
+                  <option value="keyword">{t("triggers.matchKeyword")}</option>
+                  <option value="any">{t("triggers.matchAny")}</option>
+                  <option value="verification_token">{t("triggers.matchCode")}</option>
                 </select>
                 {draft.matchType === "any" ? (
                   <span className="hint">
-                    Fires on ordinary inbound. Verification codes skip this
-                    rule.
+                    {t("lit.triggers.50")}
                   </span>
                 ) : null}
                 {draft.matchType === "verification_token" ? (
                   <span className="hint">
-                    Fires only when the message contains a verification code.
-                    Built-in verification still runs without this rule.
+                    {t("lit.triggers.51")}
                   </span>
                 ) : null}
               </label>
               {draft.matchType === "keyword" ? (
                 <label>
-                  Look for
+                  {t("triggers.lookFor")}
                   <select
                     value={draft.keywordMatch}
                     onChange={(event) =>
@@ -510,15 +505,15 @@ export function TriggersPage() {
                       }))
                     }
                   >
-                    <option value="contains">Anywhere in the message</option>
-                    <option value="equals">Whole message only</option>
+                    <option value="contains">{t("triggers.contains")}</option>
+                    <option value="equals">{t("triggers.equals")}</option>
                   </select>
                 </label>
               ) : null}
             </div>
             {draft.matchType === "keyword" ? (
               <label>
-                Keyword
+                {t("triggers.keyword")}
                 <input
                   value={draft.matchValue}
                   onChange={(event) =>
@@ -541,8 +536,8 @@ export function TriggersPage() {
                 />
                 <span className="hint">
                   {draft.keywordMatch === "contains"
-                    ? "Fires if this word appears in the message, ignoring case. Trailing commas and punctuation are ignored. Verification codes skip this rule."
-                    : "Fires only if the whole message is this keyword. Extra characters do not match. Verification codes skip this rule."}
+                    ? t("lit.triggers.52")
+                    : t("lit.triggers.53")}
                 </span>
               </label>
             ) : null}
@@ -557,11 +552,11 @@ export function TriggersPage() {
                   }))
                 }
               />
-              Stop after this match
+              {t("triggers.stop")}
             </label>
             {draft.stopProcessing ? (
               <span className="hint">
-                Later rules on this channel will not run, including replies.
+                {t("triggers.stopHint")}
               </span>
             ) : null}
           </section>
@@ -597,10 +592,10 @@ export function TriggersPage() {
           </section>
 
           <section className="trigger-section">
-            <h3>Then</h3>
+            <h3>{t("triggers.then")}</h3>
             <div className="row">
               <label>
-                Action
+                {t("triggers.action")}
                 <select
                   value={draft.actionType}
                   onChange={(event) =>
@@ -610,14 +605,14 @@ export function TriggersPage() {
                     }))
                   }
                 >
-                  <option value="reply">Send a reply</option>
-                  <option value="webhook">Notify webhook</option>
-                  <option value="verify">Record match only</option>
+                  <option value="reply">{t("triggers.actionReply")}</option>
+                  <option value="webhook">{t("triggers.actionWebhook")}</option>
+                  <option value="verify">{t("triggers.actionVerify")}</option>
                 </select>
               </label>
               {draft.actionType === "reply" ? (
                 <label>
-                  Reply type
+                  {t("triggers.replyType")}
                   <select
                     value={draft.replyMode}
                     onChange={(event) =>
@@ -628,20 +623,20 @@ export function TriggersPage() {
                           event.target.value === "otp" ? "message" : current.replySource,
                         replyBody:
                           event.target.value === "otp" && !current.replyBody.includes("{{code}}")
-                            ? "Your code is {{code}}"
+                            ? t("triggers.otpPlaceholder")
                             : current.replyBody,
                       }))
                     }
                   >
-                    <option value="text">Custom message</option>
-                    <option value="otp">OTP in the same chat</option>
+                    <option value="text">{t("verify.customMessage")}</option>
+                    <option value="otp">{t("triggers.replyOtp")}</option>
                   </select>
                 </label>
               ) : null}
             </div>
             {draft.actionType === "webhook" && !webhookReady ? (
               <p className="banner banner-warn">
-                Save a webhook URL in <Link to="/settings">Settings</Link> first.
+                {t("lit.triggers.54")}{' '}<Link to="/settings">{t("common.settings")}</Link>{' '}{t("lit.triggers.55")}
               </p>
             ) : null}
             {draft.actionType === "reply" ? (
@@ -653,7 +648,7 @@ export function TriggersPage() {
             ) : null}
             {draft.actionType === "reply" && draft.replyMode === "text" ? (
               <label>
-                Reply from
+                {t("triggers.replyFrom")}
                 <select
                   value={draft.replySource}
                   onChange={(event) =>
@@ -663,8 +658,8 @@ export function TriggersPage() {
                     }))
                   }
                 >
-                  <option value="message">Written message</option>
-                  <option value="reaction">Reaction</option>
+                  <option value="message">{t("triggers.written")}</option>
+                  <option value="reaction">{t("triggers.reaction")}</option>
                 </select>
               </label>
             ) : null}
@@ -673,11 +668,11 @@ export function TriggersPage() {
             draft.replySource === "reaction" ? (
               reactions.length === 0 ? (
                 <p className="banner banner-warn">
-                  Create a reaction on <Link to="/reactions">Reactions</Link> first.
+                  {t("lit.triggers.56")}{' '}<Link to="/reactions">{t("nav.reactions")}</Link>{' '}{t("lit.triggers.55")}
                 </p>
               ) : (
                 <label>
-                  Reaction
+                  {t("triggers.reaction")}
                   <select
                     value={draft.reactionId}
                     onChange={(event) =>
@@ -688,7 +683,7 @@ export function TriggersPage() {
                     }
                     required
                   >
-                    <option value="">Choose a reaction</option>
+                    <option value="">{t("triggers.chooseReaction")}</option>
                     {reactions.map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.name} · {reactionKindLabel(item.kind)}
@@ -696,8 +691,8 @@ export function TriggersPage() {
                     ))}
                   </select>
                   <span className="hint">
-                    Replaces the written message. OTP stays on the written path.{" "}
-                    <Link to="/reactions">Manage reactions</Link>
+                    {t("lit.triggers.57")}{" "}
+                    <Link to="/reactions">{t("triggers.manageReactions")}</Link>
                   </span>
                 </label>
               )
@@ -705,7 +700,7 @@ export function TriggersPage() {
             {draft.actionType === "reply" &&
             (draft.replyMode === "otp" || draft.replySource === "message") ? (
               <label>
-                Message to send
+                {t("triggers.messageToSend")}
                 <textarea
                   value={draft.replyBody}
                   onChange={(event) =>
@@ -716,15 +711,15 @@ export function TriggersPage() {
                   }
                   placeholder={
                     draft.replyMode === "otp"
-                      ? "Your code is {{code}}"
-                      : "Hi {{name}}, we received your message."
+                      ? t("triggers.otpPlaceholder")
+                      : t("triggers.textPlaceholder")
                   }
                   required
                 />
                 <span className="hint">
                   {draft.replyMode === "otp"
-                    ? "Must include {{code}}. Optional {{name}} uses the sender display name."
-                    : "Optional {{name}} uses the sender display name if the channel provided one."}
+                    ? t("triggers.otpHint")
+                    : t("triggers.textHint")}
                 </span>
               </label>
             ) : null}
@@ -732,7 +727,7 @@ export function TriggersPage() {
             draft.replySource === "message" &&
             draft.replyBody.trim() ? (
               <div className="trigger-reply-preview">
-                <p className="hint">Preview</p>
+                <p className="hint">{t("triggers.preview")}</p>
                 <div className="session-bubble is-out">
                   <p>{previewReply(draft.replyBody, draft.replyMode)}</p>
                 </div>
@@ -740,8 +735,7 @@ export function TriggersPage() {
             ) : null}
             {draft.actionType === "verify" ? (
               <p className="hint">
-                Records the match in Activity. The sender does not receive a
-                reply. A saved webhook URL is still notified.
+                {t("triggers.verifyHint")}
               </p>
             ) : null}
           </section>
@@ -758,10 +752,10 @@ export function TriggersPage() {
                   !draft.reactionId)
               }
             >
-              {busy ? "Saving…" : editingId ? "Save trigger" : "Create trigger"}
+              {busy ? "Saving…" : editingId ? t("triggers.save") : t("triggers.create")}
             </button>
             <button type="button" className="secondary" onClick={closeForm}>
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </form>
@@ -771,25 +765,24 @@ export function TriggersPage() {
       <article className="panel trigger-desk">
         <div className="trigger-list">
           <header className="trigger-list-head">
-            <h2>Rules</h2>
+            <h2>{t("triggers.rules")}</h2>
             <p className="hint">
-              Run from top to bottom. The first match with Stop after this match
-              ends the run.
+              {t("triggers.rulesHint")}
             </p>
           </header>
           {items === null ? (
             <div className="skeleton-table trigger-skeleton" aria-hidden="true" />
           ) : items.length === 0 ? (
             <EmptyState
-              title="No triggers yet"
-              body="When someone messages WhatsApp or Telegram, notify your app or send a reply. Built-in verification always runs."
+              title={t("triggers.emptyTitle")}
+              body={t("triggers.emptyBody")}
               action={
                 <div className="empty-actions">
                   <Link className="secondary compact" to="/setup">
-                    Ask the assistant
+                    {t("lit.triggers.58")}
                   </Link>
                   <button type="button" className="primary compact" onClick={startCreate}>
-                    New trigger
+                    {t("triggers.new")}
                   </button>
                 </div>
               }
@@ -815,7 +808,7 @@ export function TriggersPage() {
                     <button
                       type="button"
                       className="trigger-grip"
-                      aria-label={`Reorder ${item.name}`}
+                      aria-label={t("triggers.reorder", { name: item.name })}
                       draggable
                       disabled={reordering}
                       onDragStart={(event) => onDragStart(event, item.id)}
@@ -831,10 +824,10 @@ export function TriggersPage() {
                       <p className="trigger-summary">
                         <ChannelBadge channel={item.channel} />
                         {" "}
-                        {summarize(item)}
+                        {summarize(item, t)}
                       </p>
                       {scope ? <p className="trigger-hits">{scope}</p> : null}
-                      <p className="trigger-hits">{hitsLabel(item)}</p>
+                      <p className="trigger-hits">{hitsLabel(item, t)}</p>
                     </div>
                     <div className="trigger-actions">
                       <label className="switch">
@@ -843,7 +836,7 @@ export function TriggersPage() {
                           checked={item.enabled}
                           onChange={() => void onToggle(item)}
                         />
-                        {item.enabled ? "On" : "Off"}
+                        {item.enabled ? t("common.on") : t("common.off")}
                       </label>
                       <button
                         type="button"
@@ -857,7 +850,7 @@ export function TriggersPage() {
                         className="secondary compact"
                         onClick={() => startEdit(item)}
                       >
-                        Edit
+                        {t("common.edit")}
                       </button>
                       {confirmDeleteId === item.id ? (
                         <>
@@ -866,14 +859,14 @@ export function TriggersPage() {
                             className="ghost"
                             onClick={() => setConfirmDeleteId(null)}
                           >
-                            Cancel
+                            {t("common.cancel")}
                           </button>
                           <button
                             type="button"
                             className="primary compact"
                             onClick={() => void onDelete(item)}
                           >
-                            Delete
+                            {t("common.delete")}
                           </button>
                         </>
                       ) : (
@@ -882,7 +875,7 @@ export function TriggersPage() {
                           className="secondary compact"
                           onClick={() => setConfirmDeleteId(item.id)}
                         >
-                          Delete
+                          {t("common.delete")}
                         </button>
                       )}
                     </div>
@@ -907,67 +900,64 @@ export function TriggersPage() {
         <form className="trigger-tester" onSubmit={(event) => void onTest(event)}>
           <header className="panel-head">
             <div>
-              <h2>Test a message</h2>
+              <h2>{t("triggers.testTitle")}</h2>
               <p className="hint">
-                Dry run against enabled rules. Nothing is recorded. An HTTP
-                reaction will call its URL and fill the reply from the JSON it
-                returns.
+                {t("triggers.testHint")}
               </p>
             </div>
           </header>
           <label>
-            Channel
+            {t("common.channel")}
             <select
               value={testChannel}
               onChange={(event) =>
                 setTestChannel(event.target.value as "whatsapp" | "telegram")
               }
             >
-              <option value="whatsapp">WhatsApp</option>
-              <option value="telegram">Telegram</option>
+              <option value="whatsapp">{t("common.whatsapp")}</option>
+              <option value="telegram">{t("common.telegram")}</option>
             </select>
           </label>
           <label>
-            Inbound as
+            {t("triggers.inboundAs")}
             <select
               value={testMediaType}
               onChange={(event) =>
                 setTestMediaType(event.target.value as ListenType)
               }
             >
-              <option value="text">Text</option>
-              <option value="image">Photo</option>
-              <option value="audio">Voice note</option>
-              <option value="file">File</option>
+              <option value="text">{t("triggers.listenText")}</option>
+              <option value="image">{t("usage.job.vision")}</option>
+              <option value="audio">{t("triggers.listenAudio")}</option>
+              <option value="file">{t("triggers.listenFile")}</option>
             </select>
           </label>
           <label>
-            Inbound text
+            {t("triggers.inboundText")}
             <textarea
               value={testText}
               onChange={(event) => setTestText(event.target.value)}
               placeholder={
                 testMediaType === "image"
-                  ? "Optional caption"
+                  ? t("triggers.captionPlaceholder")
                   : testMediaType === "audio"
-                    ? "Optional transcript"
+                    ? t("triggers.transcriptPlaceholder")
                     : testMediaType === "file"
-                      ? "Optional caption or file text"
+                      ? t("triggers.filePlaceholder")
                       : "HELP"
               }
               required={testMediaType === "text"}
             />
             <span className="hint">
-              A verification code only matches a rule set to A verification
-              code. Other rules ignore it.
+              {t("lit.triggers.59")}
             </span>
           </label>
           <label>
-            Sender name
+            {t("triggers.senderName")}
             <input
               value={testName}
               onChange={(event) => setTestName(event.target.value)}
-              placeholder="Alex"
+              placeholder={t("triggers.senderPlaceholder")}
             />
           </label>
           <label>
@@ -984,7 +974,7 @@ export function TriggersPage() {
             className="primary"
             disabled={testBusy || (testMediaType === "text" && !testText.trim())}
           >
-            {testBusy ? "Testing…" : "Test"}
+            {testBusy ? "Testing…" : t("triggers.test")}
           </button>
           {testError ? (
             <p className="banner banner-danger" role="alert">
@@ -1007,49 +997,49 @@ function TestResult({
   result: TriggerSimulation;
   enabledCount: number;
 }) {
+  const t = useT();
   if (enabledCount === 0) {
-    return <p className="hint">Turn a rule on to test it.</p>;
+    return <p className="hint">{t("triggers.testOff")}</p>;
   }
   if (result.matched.length === 0) {
-    return <p className="hint">No enabled rule matches this text.</p>;
+    return <p className="hint">{t("triggers.testNone")}</p>;
   }
 
   return (
     <div className="trigger-test-result">
       <p className="hint">
         {result.matched.length === 1
-          ? "1 rule would run."
-          : `${result.matched.length} rules would run.`}
+          ? t("triggers.testOne")
+          : t("triggers.testMany", { count: result.matched.length })}
       </p>
       <ol className="trigger-test-matches">
         {result.matched.map((item) => (
           <li key={item.id}>
             <strong>{item.name}</strong>
             <span>
-              {actionLabel(item)}
-              {result.reply?.triggerId === item.id ? " · reply below" : ""}
-              {result.stoppedAt === item.id ? " · stops after this" : ""}
+              {actionLabel(item, t)}
+              {result.reply?.triggerId === item.id ? t("triggers.replyBelow") : ""}
+              {result.stoppedAt === item.id ? t("triggers.stopsAfter") : ""}
             </span>
           </li>
         ))}
       </ol>
       {result.webhooks.length > 0 ? (
         <p className="hint">
-          Would notify webhook
-          {result.webhooks.length === 1 ? "" : "s"}:{" "}
+          {t(result.webhooks.length === 1 ? "lit.triggers.notifyOne" : "lit.triggers.notifyMany")}{" "}
           {result.webhooks.map((row) => row.name).join(", ")}.
         </p>
       ) : null}
       {result.reply ? (
         <div className="session-bubble is-out">
-          <p>{result.reply.text || "(empty reply)"}</p>
+          <p>{result.reply.text || t("triggers.emptyReply")}</p>
         </div>
       ) : null}
       {result.reply?.reaction ? (
         <p className="hint">
           {result.reply.reaction.name} ·{" "}
           {reactionKindLabel(result.reply.reaction.kind)}
-          {result.reply.reaction.usedFallback ? " · used fallback" : ""}
+          {result.reply.reaction.usedFallback ? t("triggers.usedFallback") : ""}
         </p>
       ) : null}
     </div>
@@ -1065,26 +1055,26 @@ function ReplyChannelHint({
   whatsappReady: boolean;
   telegramReady: boolean;
 }) {
+  const t = useT();
   if (channel === "both") {
     if (whatsappReady && telegramReady) {
       return (
         <p className="hint">
-          A match replies on the app the customer wrote from.
+          {t("triggers.replyBothReady")}
         </p>
       );
     }
     if (whatsappReady || telegramReady) {
       return (
         <p className="banner banner-warn">
-          Replies go out on the app that received the message. Connect the
-          other from <Link to="/overview">Home</Link> if you need both.
+          {t("lit.triggers.60")}{' '}<Link to="/overview">{t("common.home")}</Link>{' '}{t("lit.triggers.61")}
         </p>
       );
     }
     return (
       <p className="banner banner-warn">
-        Connect WhatsApp or Telegram from <Link to="/overview">Home</Link>{" "}
-        before a reply can go out.
+        {t("lit.triggers.62")}{' '}<Link to="/overview">{t("common.home")}</Link>{" "}
+        {t("lit.triggers.63")}
       </p>
     );
   }
@@ -1094,8 +1084,8 @@ function ReplyChannelHint({
   }
   return (
     <p className="banner banner-warn">
-      Connect {channelLabel(channel)} from <Link to="/overview">Home</Link>{" "}
-      before this reply can go out.
+      {t("lit.triggers.64")}{' '}{channelLabel(channel)} from <Link to="/overview">{t("common.home")}</Link>{" "}
+      {t("lit.triggers.65")}
     </p>
   );
 }
@@ -1106,26 +1096,32 @@ function previewReply(body: string, mode: "text" | "otp"): string {
     .replaceAll("{{code}}", mode === "otp" ? "VFY-EXAMPLE" : "");
 }
 
-function summarize(trigger: Trigger): string {
+function summarize(trigger: Trigger, t: Translate): string {
+  const what = listenSummary(trigger.listenTypes, t);
+  const value = trigger.matchValue ?? "";
   const when =
     trigger.matchType === "any"
       ? trigger.channel === "both"
-        ? `any WhatsApp or Telegram ${listenSummary(trigger.listenTypes)}`
-        : `any ${channelLabel(trigger.channel)} ${listenSummary(trigger.listenTypes)}`
+        ? t("lit.triggers.sumAnyBoth", { what })
+        : t("lit.triggers.sumAnyOne", { channel: channelLabel(trigger.channel), what })
       : trigger.matchType === "verification_token"
-        ? `a verification code in ${listenSummary(trigger.listenTypes)}`
+        ? t("lit.triggers.sumCode", { what })
         : trigger.keywordMatch === "contains"
-          ? `keyword “${trigger.matchValue}” anywhere in ${listenSummary(trigger.listenTypes)}`
-          : `keyword “${trigger.matchValue}” as the whole ${listenSummary(trigger.listenTypes)}`;
-  return `When ${when}, ${actionLabel(trigger)}.`;
+          ? t("lit.triggers.sumContains", { value, what })
+          : t("lit.triggers.sumEquals", { value, what });
+  return t("lit.triggers.sumSentence", { when, action: actionLabel(trigger, t) });
 }
 
-const LISTEN_OPTIONS: Array<{ value: ListenType; label: string }> = [
-  { value: "text", label: "Text" },
-  { value: "image", label: "Photo" },
-  { value: "audio", label: "Voice note" },
-  { value: "file", label: "File" },
-];
+const LISTEN_TYPES: ListenType[] = ["text", "image", "audio", "file"];
+
+function listenOptions(t: Translate): Array<{ value: ListenType; label: string }> {
+  return [
+    { value: "text", label: t("triggers.listenText") },
+    { value: "image", label: t("triggers.listenImage") },
+    { value: "audio", label: t("triggers.listenAudio") },
+    { value: "file", label: t("triggers.listenFile") },
+  ];
+}
 
 function toggleListen(current: ListenType[], value: ListenType): ListenType[] {
   if (current.includes(value)) {
@@ -1135,37 +1131,40 @@ function toggleListen(current: ListenType[], value: ListenType): ListenType[] {
   return [...current, value];
 }
 
-function listenSummary(types: ListenType[] | undefined): string {
+function listenSummary(types: ListenType[] | undefined, t: Translate): string {
   const values = types?.length ? types : ["text"];
-  if (values.length >= LISTEN_OPTIONS.length) {
-    return "message";
+  if (values.length >= LISTEN_TYPES.length) {
+    return t("lit.triggers.wMessage");
   }
   const labels = values.map((item) =>
     item === "text"
-      ? "text"
+      ? t("lit.triggers.wText")
       : item === "image"
-        ? "photo"
+        ? t("lit.triggers.wPhoto")
         : item === "audio"
-          ? "voice note"
-          : "file",
+          ? t("lit.triggers.wVoice")
+          : t("lit.triggers.wFile"),
   );
   if (labels.length === 1) {
-    return labels[0] ?? "message";
+    return labels[0] ?? t("lit.triggers.wMessage");
   }
-  return `${labels.slice(0, -1).join(", ")} or ${labels[labels.length - 1]}`;
+  return t("lit.triggers.wOr", {
+    first: labels.slice(0, -1).join(", "),
+    last: labels[labels.length - 1] ?? "",
+  });
 }
 
-function actionLabel(trigger: Trigger): string {
+function actionLabel(trigger: Trigger, t: Translate): string {
   if (trigger.actionType === "verify") {
-    return "record the match";
+    return t("triggers.doVerify");
   }
   if (trigger.actionType === "webhook") {
-    return "notify your webhook";
+    return t("triggers.doWebhook");
   }
   if (trigger.reaction) {
-    return `run “${trigger.reaction.name}”`;
+    return t("triggers.doReaction", { name: trigger.reaction.name });
   }
-  return trigger.actionConfig.mode === "otp" ? "send an OTP" : "send a custom message";
+  return trigger.actionConfig.mode === "otp" ? t("triggers.doOtp") : t("triggers.doMessage");
 }
 
 const MAX_SENDER_LIST = 100;
@@ -1326,15 +1325,16 @@ function RemoveIcon() {
   );
 }
 
-function hitsLabel(trigger: Trigger): string {
+function hitsLabel(trigger: Trigger, t: Translate): string {
   if (!trigger.hits) {
-    return "No matches yet";
+    return t("triggers.hitsNone");
   }
-  const count = `${trigger.hits} match${trigger.hits === 1 ? "" : "es"}`;
+  const count =
+    trigger.hits === 1 ? t("triggers.hitsOne") : t("triggers.hitsMany", { count: trigger.hits });
   if (!trigger.lastMatchedAt) {
     return count;
   }
-  return `${count} · last ${formatWhen(trigger.lastMatchedAt)}`;
+  return t("triggers.hitsLast", { count, when: formatWhen(trigger.lastMatchedAt) });
 }
 
 function GripIcon() {
