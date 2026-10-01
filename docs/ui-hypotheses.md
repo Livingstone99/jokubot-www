@@ -44,3 +44,16 @@ un point, ou quand l'existant ne permettait pas de le suivre à la lettre.
   `#/channels`, `#/more`. Anciennes adresses redirigées : `#/sessions` et
   `#/activity` vers `#/messages` ; `#/setup`, `#/triggers` et `#/reactions`
   vers les onglets de `#/automations`.
+
+## Tâche 3 — En-tête de page
+
+- **Avatar rouge.** La section 2 limite le rouge à trois usages, mais la
+  section 4 demande un avatar « cercle rouge avec initiales » : la section 4
+  est suivie.
+- **Langue.** Le sélecteur de langue quitte la barre du haut et passe dans le
+  menu de l'avatar (Profil, Langue, Se déconnecter).
+- **Profil.** L'entrée « Profil » mène à la page Réglages, qui contient le
+  bloc Profil.
+- **Bouton « Ouvrir l'assistant » sur mobile.** Il se réduit à l'icône du bot
+  pour laisser la place au titre ; son libellé reste lu par les lecteurs
+  d'écran.

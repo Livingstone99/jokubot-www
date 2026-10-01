@@ -9,6 +9,7 @@ import { LocaleMenu, useT } from "../locale.js";
 import { ThemeToggle } from "../theme.js";
 import { InboxProvider } from "../kit/inbox.js";
 import { BottomNav, Sidebar } from "./Navigation.js";
+import { PageHeader } from "./PageHeader.js";
 import { hasChannelSetup, initials } from "../ui.js";
 
 export function AppShell() {
@@ -59,21 +60,12 @@ export function AppShell() {
       <div className="app">
         <Sidebar />
         <div className="app-main">
-          <header className="topbar">
-            <div className="topbar-spacer" />
-            <div className="topbar-tools">
-              <ThemeToggle />
-              <LocaleMenu />
-              <UserMenu
-                name={me?.name || me?.email || ""}
-                email={me?.email ?? ""}
-                onLogout={() => void onLogout()}
-                onNavigate={() => undefined}
-              />
-            </div>
-          </header>
-
           <main className="content">
+            <PageHeader
+              name={me?.name || me?.email || ""}
+              email={me?.email ?? ""}
+              onLogout={() => void onLogout()}
+            />
             <div className="route-root" key={pathname}>
               <Outlet />
             </div>
@@ -82,90 +74,6 @@ export function AppShell() {
         <BottomNav />
       </div>
     </InboxProvider>
-  );
-}
-
-/** Menu du compte sous l'avatar : identité, raccourcis et déconnexion. */
-function UserMenu({
-  name,
-  email,
-  onLogout,
-  onNavigate,
-}: {
-  name: string;
-  email: string;
-  onLogout: () => void;
-  onNavigate: () => void;
-}) {
-  const t = useT();
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  function close() {
-    setOpen(false);
-    onNavigate();
-  }
-
-  return (
-    <div className="user-menu" ref={rootRef}>
-      <button
-        type="button"
-        className="user-menu-trigger"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={t("nav.userMenu")}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <span className="avatar" aria-hidden="true">
-          {initials(name || "u")}
-        </span>
-        <IconChevronDown />
-      </button>
-      {open ? (
-        <div className="user-menu-panel" role="menu">
-          <div className="user-menu-head">
-            <strong>{name}</strong>
-            {email && email !== name ? <span>{email}</span> : null}
-          </div>
-          <NavLink to="/settings" role="menuitem" className="user-menu-item" onClick={close}>
-            <IconSliders />
-            {t("nav.settings")}
-          </NavLink>
-          <NavLink to="/developers" role="menuitem" className="user-menu-item" onClick={close}>
-            <IconKey />
-            {t("nav.developers")}
-          </NavLink>
-          <button
-            type="button"
-            role="menuitem"
-            className="user-menu-item is-danger"
-            onClick={() => {
-              setOpen(false);
-              onLogout();
-            }}
-          >
-            <IconLogout />
-            {t("nav.signOut")}
-          </button>
-        </div>
-      ) : null}
-    </div>
   );
 }
 

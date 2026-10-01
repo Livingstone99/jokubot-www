@@ -67,18 +67,7 @@ export function OverviewPage() {
 
   return (
     <section className="page">
-      <header className="page-head home-head">
-        <div>
-          <h1>{t("nav.overview")}</h1>
-          <p className="lede">{t("home.lede")}</p>
-        </div>
-        <div className="page-actions">
-          <Link className="primary" to="/setup">
-            <JokubotMark size={20} />
-            {t("assist.open")}
-          </Link>
-        </div>
-      </header>
+      <p className="lede page-intro">{t("home.lede")}</p>
 
       <HomeChannels />
       <FirstSteps data={data} />

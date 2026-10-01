@@ -224,11 +224,6 @@ export function MorePage() {
   const extra = main.filter((item) => item.to === "/usage" || item.to === "/settings");
   return (
     <section className="page more-page">
-      <header className="page-head">
-        <div>
-          <h1>{t("nav2.more")}</h1>
-        </div>
-      </header>
       <ul className="more-list">
         {extra.map((item) => (
           <li key={item.to}>
