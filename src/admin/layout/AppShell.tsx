@@ -8,6 +8,7 @@ import { JokubotMark } from "../brand/Logo.js";
 import { LocaleMenu, useT } from "../locale.js";
 import { ThemeToggle } from "../theme.js";
 import { InboxProvider } from "../kit/inbox.js";
+import { ToastProvider } from "../kit/ui.js";
 import { BottomNav, Sidebar } from "./Navigation.js";
 import { PageHeader } from "./PageHeader.js";
 import { hasChannelSetup, initials } from "../ui.js";
@@ -57,6 +58,7 @@ export function AppShell() {
 
   return (
     <InboxProvider>
+      <ToastProvider>
       <div className="app">
         <Sidebar />
         <div className="app-main">
@@ -73,6 +75,7 @@ export function AppShell() {
         </div>
         <BottomNav />
       </div>
+      </ToastProvider>
     </InboxProvider>
   );
 }

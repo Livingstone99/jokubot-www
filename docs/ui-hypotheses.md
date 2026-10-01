@@ -57,3 +57,18 @@ un point, ou quand l'existant ne permettait pas de le suivre à la lettre.
 - **Bouton « Ouvrir l'assistant » sur mobile.** Il se réduit à l'icône du bot
   pour laisser la place au titre ; son libellé reste lu par les lecteurs
   d'écran.
+
+## Tâche 4 — Accueil
+
+- **« Aujourd'hui ».** L'API fournit les messages reçus sur les dernières
+  24 heures, pas depuis minuit : c'est ce chiffre qui est affiché, avec la
+  mention « Dernières 24 heures ».
+- **Réponses envoyées.** Nombre de messages reçus sur 24 h pour lesquels
+  Jokubot a répondu (issues « triggered » ou « verified »).
+- **En attente.** Nombre de conversations non lues (voir Tâche 2).
+- **Sections retirées.** L'ancien accueil affichait aussi la santé de la
+  passerelle, la répartition des preuves, les vérifications récentes et les
+  exceptions. Ces informations restent dans Avancé (Vérifier, Journal des
+  messages reçus) ; l'accueil s'en tient au contenu demandé.
+- **Premiers pas.** La carte de démarrage en 4 étapes de la version
+  précédente n'est pas dans le cahier des charges : elle est retirée.
