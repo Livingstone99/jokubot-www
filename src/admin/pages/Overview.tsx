@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { AgentAssistLaunch } from "../AgentAssist.js";
+import { JokubotMark } from "../brand/Logo.js";
 import { api, type Overview } from "../api.js";
 import { useAuth } from "../auth.js";
 import {
@@ -9,7 +9,15 @@ import {
   describeChannel,
 } from "../ChannelLink.js";
 import { useT } from "../locale.js";
-import { ChannelConnectCard, ChannelReadyHint } from "../ChannelConnect.js";
+import {
+  IconBolt,
+  IconKey,
+  IconReply,
+  IconScan,
+  IconSliders,
+  IconTag,
+} from "../layout/AppShell.js";
+import { ChannelConnectCard } from "../ChannelConnect.js";
 import {
   ChannelBadge,
   ConnectedMark,
@@ -59,26 +67,22 @@ export function OverviewPage() {
 
   return (
     <section className="page">
-      <header className="page-head">
+      <header className="page-head home-head">
         <div>
-          <p className="eyebrow">{t("nav.overview")}</p>
-          <h1>{tenant?.name ?? t("overview.workspace")}</h1>
-          <p className="lede">
-            {channelsReady
-              ? t("overview.ledeReady")
-              : t("overview.ledeSetup")}
-          </p>
-          <ChannelReadyHint />
+          <h1>{t("nav.overview")}</h1>
+          <p className="lede">{t("home.lede")}</p>
         </div>
         <div className="page-actions">
-          <Link className="secondary" to="/triggers?new=1">
-            {t("triggers.create")}
-          </Link>
-          <Link className="primary" to="/reactions?new=1">
-            {t("reactions.create")}
+          <Link className="primary" to="/setup">
+            <JokubotMark size={20} />
+            {t("assist.open")}
           </Link>
         </div>
       </header>
+
+      <HomeChannels />
+      <FirstSteps data={data} />
+      <QuickActions channelsReady={channelsReady} />
 
       {error ? (
         <p className="banner banner-danger" role="alert">
@@ -112,58 +116,6 @@ export function OverviewPage() {
           </Link>
         </div>
       ) : null}
-
-      <div className="stat-grid">
-          <Stat
-            label={t("ui.verified")}
-            hint={t("overview.statLast24h")}
-            value={data?.verifiedLast24h}
-            detail={
-              data
-                ? t("overview.issuedDetail", { count: data.issuedLast24h })
-                : t("overview.issuedHint")
-            }
-          />
-        <Stat
-          label={t("ui.waiting")}
-          hint={t("overview.statLive")}
-          value={data?.pending}
-          detail={t("overview.waitingDetail")}
-        />
-        <Stat
-          label={t("ui.expired")}
-          hint={t("overview.statAllTime")}
-          value={data?.expired}
-          detail={t("overview.expiredDetail")}
-        />
-        <Stat
-          label={t("overview.statInbound")}
-          hint={t("overview.statLast24h")}
-          value={data?.inboundLast24h}
-          detail={
-            exceptionCount
-              ? t("overview.inboundExceptions", { count: exceptionCount })
-              : t("overview.inboundDetail")
-          }
-        />
-        {data?.credits?.hasPlan ? (
-          <Stat
-            label={t("overview.statCredits")}
-            hint={t("overview.statThisMonth")}
-            value={data.credits.remaining}
-            detail={
-              data.credits.exhausted
-                ? t("overview.creditsExhaustedDetail")
-                : t("overview.creditsDetail", {
-                    remaining: data.credits.remaining.toLocaleString(),
-                    included: data.credits.included.toLocaleString(),
-                  })
-            }
-          />
-        ) : null}
-      </div>
-
-      <AgentAssistLaunch />
 
       <div className="split">
         <article className="panel">
@@ -518,3 +470,164 @@ function StartVerificationCta({
 function setupGaps(_data: Overview | null): string[] {
   return [];
 }
+
+/** Cartes « Mes canaux » : l'état de WhatsApp et Telegram en un coup d'œil. */
+function HomeChannels() {
+  const { me } = useAuth();
+  const t = useT();
+  const tenant = me?.tenant;
+  const cards = [
+    {
+      id: "whatsapp" as const,
+      name: t("common.whatsapp"),
+      value: tenant?.whatsappNumber ?? null,
+      copy: describeChannel(t, "whatsapp", tenant),
+    },
+    {
+      id: "telegram" as const,
+      name: t("common.telegram"),
+      value: tenant?.telegramBotUsername ? `@${tenant.telegramBotUsername}` : null,
+      copy: describeChannel(t, "telegram", tenant),
+    },
+  ];
+  return (
+    <section className="home-section" aria-labelledby="home-channels">
+      <h2 className="section-label" id="home-channels">
+        {t("home.channels")}
+      </h2>
+      <div className="channel-cards">
+        {cards.map((card) => {
+          const ready = card.copy.status === "connected";
+          return (
+            <Link
+              key={card.id}
+              to="/settings"
+              className={`channel-card is-${card.id}${ready ? " is-ready" : ""}`}
+            >
+              <span className="channel-card-top">
+                <span className="channel-card-name">{card.name}</span>
+                <span className={`channel-card-dot tone-${card.copy.tone}`} aria-hidden="true" />
+              </span>
+              <strong className="channel-card-value">
+                {card.value ?? t("home.notConnected")}
+              </strong>
+              <span className="channel-card-foot">
+                <span className={`status-chip tone-${card.copy.tone}`}>{card.copy.label}</span>
+                <span className="channel-card-manage">{t("home.manage")} →</span>
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/** Parcours de démarrage en quatre étapes, masqué une fois tout terminé. */
+function FirstSteps({ data }: { data: Overview | null }) {
+  const { me } = useAuth();
+  const t = useT();
+  const [purposes, setPurposes] = useState<number | null>(null);
+  const [triggers, setTriggers] = useState<number | null>(null);
+
+  useEffect(() => {
+    void api
+      .purposes()
+      .then((res) => setPurposes(res.items.length))
+      .catch(() => setPurposes(0));
+    void api
+      .triggers()
+      .then((res) => setTriggers(res.items.length))
+      .catch(() => setTriggers(0));
+  }, []);
+
+  const channelsReady = hasChannelSetup(me?.tenant);
+  const issued = data ? data.verified + data.pending + data.expired : 0;
+  const steps = [
+    { done: channelsReady, title: t("home.step1"), body: t("home.step1Body"), cta: t("home.step1Cta"), to: "/settings" },
+    { done: (purposes ?? 0) > 0, title: t("home.step2"), body: t("home.step2Body"), cta: t("home.step2Cta"), to: "/purposes" },
+    { done: (triggers ?? 0) > 0, title: t("home.step3"), body: t("home.step3Body"), cta: t("home.step3Cta"), to: "/triggers?new=1" },
+    { done: issued > 0, title: t("home.step4"), body: t("home.step4Body"), cta: t("home.step4Cta"), to: channelsReady ? "/verify" : "/settings" },
+  ];
+  const loading = !data || purposes === null || triggers === null;
+  const doneCount = steps.filter((step) => step.done).length;
+  const current = steps.findIndex((step) => !step.done);
+
+  if (loading || doneCount === steps.length) {
+    return null;
+  }
+
+  return (
+    <section className="panel first-steps" aria-labelledby="home-steps">
+      <header className="first-steps-head">
+        <h2 id="home-steps">{t("home.steps")}</h2>
+        <span className="first-steps-count">
+          {t("home.stepsProgress", { done: doneCount, total: steps.length })}
+        </span>
+      </header>
+      <div className="first-steps-bar" aria-hidden="true">
+        {steps.map((step, index) => (
+          <span key={index} className={step.done ? "is-done" : index === current ? "is-current" : ""} />
+        ))}
+      </div>
+      <ol className="first-steps-list">
+        {steps.map((step, index) => (
+          <li
+            key={index}
+            className={step.done ? "is-done" : index === current ? "is-current" : ""}
+          >
+            <span className="step-badge" aria-hidden="true">
+              {step.done ? (
+                <svg viewBox="0 0 16 16" width="14" height="14">
+                  <path d="m3.5 8.5 3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : (
+                index + 1
+              )}
+            </span>
+            <div className="step-copy">
+              <strong>{step.title}</strong>
+              <p>{step.body}</p>
+            </div>
+            {step.done ? (
+              <span className="status-chip tone-ok">{t("home.stepDone")}</span>
+            ) : (
+              <Link className={index === current ? "primary" : "secondary"} to={step.to}>
+                {step.cta}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/** Raccourcis vers les tâches les plus courantes. */
+function QuickActions({ channelsReady }: { channelsReady: boolean }) {
+  const t = useT();
+  const actions = [
+    { to: channelsReady ? "/verify" : "/settings", label: t("home.qIssue"), icon: IconScan },
+    { to: "/triggers?new=1", label: t("home.qTrigger"), icon: IconBolt },
+    { to: "/reactions?new=1", label: t("home.qReaction"), icon: IconReply },
+    { to: "/purposes", label: t("home.qPurpose"), icon: IconTag },
+    { to: "/settings", label: t("home.qConnect"), icon: IconSliders },
+    { to: "/developers", label: t("home.qKeys"), icon: IconKey },
+  ];
+  return (
+    <section className="home-section" aria-labelledby="home-quick">
+      <h2 className="section-label" id="home-quick">
+        {t("home.quick")}
+      </h2>
+      <div className="quick-actions">
+        {actions.map((action) => (
+          <Link key={action.label} to={action.to} className="quick-action">
+            <action.icon />
+            {action.label}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+

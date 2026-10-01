@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { api } from "../api.js";
 import { appHref } from "../../config.js";
 import { useAuth } from "../auth.js";
 import { JokubotMark } from "../brand/Logo.js";
-import { LocaleToggle, useT } from "../locale.js";
+import { LocaleMenu, useT } from "../locale.js";
 import { ThemeToggle } from "../theme.js";
 import { hasChannelSetup, initials } from "../ui.js";
 
@@ -18,20 +18,38 @@ export function AppShell() {
   const t = useT();
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(NAV_KEY) === "1");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const operate = [
-    { to: "/overview", label: t("nav.overview"), end: true, icon: IconGrid },
-    { to: "/sessions", label: t("nav.sessions"), icon: IconChat },
-    { to: "/verify", label: t("nav.verify"), icon: IconScan },
-    { to: "/purposes", label: t("nav.purposes"), icon: IconTag },
-    { to: "/setup", label: t("nav.setup"), icon: IconGuide },
-    { to: "/triggers", label: t("nav.triggers"), icon: IconBolt },
-    { to: "/reactions", label: t("nav.reactions"), icon: IconReply },
-    { to: "/activity", label: t("nav.activity"), icon: IconPulse },
-    { to: "/usage", label: t("nav.usage"), icon: IconUsage },
-  ];
-  const workspace = [
-    { to: "/settings", label: t("nav.settings"), icon: IconSliders },
-    { to: "/developers", label: t("nav.developers"), icon: IconKey },
+  const groups: NavGroup[] = [
+    {
+      label: t("nav.gOverview"),
+      links: [
+        { to: "/overview", label: t("nav.overview"), end: true, icon: IconGrid },
+        { to: "/activity", label: t("nav.activity"), icon: IconPulse },
+        { to: "/usage", label: t("nav.usage"), icon: IconUsage },
+      ],
+    },
+    {
+      label: t("nav.gVerify"),
+      links: [
+        { to: "/verify", label: t("nav.verify"), icon: IconScan, needsChannel: true },
+        { to: "/sessions", label: t("nav.sessions"), icon: IconChat },
+        { to: "/purposes", label: t("nav.purposes"), icon: IconTag },
+      ],
+    },
+    {
+      label: t("nav.gAutomate"),
+      links: [
+        { to: "/setup", label: t("nav.setup"), icon: IconGuide },
+        { to: "/triggers", label: t("nav.triggers"), icon: IconBolt },
+        { to: "/reactions", label: t("nav.reactions"), icon: IconReply },
+      ],
+    },
+    {
+      label: t("nav.workspace"),
+      links: [
+        { to: "/settings", label: t("nav.settings"), icon: IconSliders },
+        { to: "/developers", label: t("nav.developers"), icon: IconKey },
+      ],
+    },
   ];
 
   useEffect(() => {
@@ -92,108 +110,96 @@ export function AppShell() {
 
   return (
     <div className={appClass}>
-      <header className="topbar">
+      <div className="sidebar-slot">
+        <aside className="sidebar">
+          <NavLink to="/overview" className="sidebar-brand" onClick={() => setMobileOpen(false)}>
+            <span className="mark" aria-hidden="true">
+              <JokubotMark size={32} />
+            </span>
+            <span className="wordmark">jokubot</span>
+          </NavLink>
+          <nav aria-label={t("nav.workspace")}>
+            {groups.map((group) => (
+              <div className="nav-group" key={group.label}>
+                <p className="nav-label">{group.label}</p>
+                {group.links.map((link) =>
+                  link.needsChannel && !channelsReady ? (
+                    <span
+                      key={link.to}
+                      className="nav is-disabled"
+                      title={channelHint}
+                      aria-disabled="true"
+                    >
+                      <link.icon />
+                      <span>{link.label}</span>
+                    </span>
+                  ) : (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      end={link.end}
+                      title={link.label}
+                      className={({ isActive }) => (isActive ? "nav is-active" : "nav")}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <link.icon />
+                      <span>{link.label}</span>
+                    </NavLink>
+                  ),
+                )}
+              </div>
+            ))}
+            <div className="nav-group nav-help">
+              <p className="nav-label">{t("nav.gHelp")}</p>
+              <a className="nav" href={appHref("/docs")} title={t("nav.docs")}>
+                <IconBook />
+                <span>{t("nav.docs")}</span>
+              </a>
+              <a className="nav" href={appHref("/status")} title={t("nav.status")}>
+                <IconPulse />
+                <span>{t("nav.status")}</span>
+              </a>
+              <a className="nav" href={appHref("/security")} title={t("nav.security")}>
+                <IconShield />
+                <span>{t("nav.security")}</span>
+              </a>
+            </div>
+          </nav>
+        </aside>
         <button
           type="button"
-          className="icon-btn topbar-menu"
-          aria-label={mobileOpen ? t("nav.closeMenu") : t("nav.openMenu")}
-          onClick={() => setMobileOpen((value) => !value)}
+          className="sidebar-fold"
+          aria-label={collapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
+          aria-expanded={!collapsed}
+          onClick={onCollapse}
         >
-          <IconMenu />
+          <IconChevron />
         </button>
-        <span className="mark" aria-hidden="true">
-          <JokubotMark size={44} />
-        </span>
-        <div className="topbar-brand">
-          <strong className="wordmark">jokubot</strong>
-          <span>{me?.tenant.name}</span>
-        </div>
-        <span className="kind">
-          {t(me?.tenant.accountKind === "individual" ? "nav.kindIndividual" : "nav.kindBusiness")}
-        </span>
-        <div className="topbar-spacer" />
-        <div className="topbar-user">
-          <span className="avatar" aria-hidden="true">
-            {initials(me?.name || me?.email || "u")}
-          </span>
-          <div className="topbar-user-copy">
-            <strong>{me?.name || me?.email}</strong>
-            <span>{me?.name ? me.email : t("common.owner")}</span>
-          </div>
-          <button type="button" className="ghost" onClick={() => void onLogout()}>
-            {t("nav.signOut")}
-          </button>
-          <LocaleToggle />
-          <ThemeToggle />
-        </div>
-      </header>
+      </div>
 
-      <div className="app-body">
-        <div className="sidebar-slot">
-          <aside className="sidebar">
-            <nav>
-              <p className="nav-label">{t("nav.operate")}</p>
-              {operate.map((link) =>
-                link.to === "/verify" && !channelsReady ? (
-                  <span
-                    key={link.to}
-                    className="nav is-disabled"
-                    title={channelHint}
-                    aria-disabled="true"
-                  >
-                    <link.icon />
-                    <span>{link.label}</span>
-                  </span>
-                ) : (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    end={link.end}
-                    title={link.label}
-                    className={({ isActive }) => (isActive ? "nav is-active" : "nav")}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <link.icon />
-                    <span>{link.label}</span>
-                  </NavLink>
-                ),
-              )}
-              <p className="nav-label">{t("nav.workspace")}</p>
-              {workspace.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  title={link.label}
-                  className={({ isActive }) => (isActive ? "nav is-active" : "nav")}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <link.icon />
-                  <span>{link.label}</span>
-                </NavLink>
-              ))}
-              <div className="nav-legal">
-                <a href={appHref("/docs")} onClick={() => setMobileOpen(false)}>
-                  {t("nav.docs")}
-                </a>
-                <a href={appHref("/status")} onClick={() => setMobileOpen(false)}>
-                  {t("nav.status")}
-                </a>
-                <a href={appHref("/security")} onClick={() => setMobileOpen(false)}>
-                  {t("nav.security")}
-                </a>
-              </div>
-            </nav>
-          </aside>
+      <div className="app-main">
+        <header className="topbar">
           <button
             type="button"
-            className="sidebar-fold"
-            aria-label={collapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
-            aria-expanded={!collapsed}
-            onClick={onCollapse}
+            className="icon-btn topbar-menu"
+            aria-label={mobileOpen ? t("nav.closeMenu") : t("nav.openMenu")}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((value) => !value)}
           >
-            <IconChevron />
+            <IconMenu />
           </button>
-        </div>
+          <div className="topbar-spacer" />
+          <div className="topbar-tools">
+            <ThemeToggle />
+            <LocaleMenu />
+            <UserMenu
+              name={me?.name || me?.email || ""}
+              email={me?.email ?? ""}
+              onLogout={() => void onLogout()}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          </div>
+        </header>
 
         <main className="content">
           <div className="route-root" key={pathname}>
@@ -214,7 +220,160 @@ export function AppShell() {
   );
 }
 
-function IconGrid() {
+type NavGroup = {
+  label: string;
+  links: Array<{
+    to: string;
+    label: string;
+    icon: () => React.JSX.Element;
+    end?: boolean;
+    needsChannel?: boolean;
+  }>;
+};
+
+/** Menu du compte sous l'avatar : identité, raccourcis et déconnexion. */
+function UserMenu({
+  name,
+  email,
+  onLogout,
+  onNavigate,
+}: {
+  name: string;
+  email: string;
+  onLogout: () => void;
+  onNavigate: () => void;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  function close() {
+    setOpen(false);
+    onNavigate();
+  }
+
+  return (
+    <div className="user-menu" ref={rootRef}>
+      <button
+        type="button"
+        className="user-menu-trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={t("nav.userMenu")}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="avatar" aria-hidden="true">
+          {initials(name || "u")}
+        </span>
+        <IconChevronDown />
+      </button>
+      {open ? (
+        <div className="user-menu-panel" role="menu">
+          <div className="user-menu-head">
+            <strong>{name}</strong>
+            {email && email !== name ? <span>{email}</span> : null}
+          </div>
+          <NavLink to="/settings" role="menuitem" className="user-menu-item" onClick={close}>
+            <IconSliders />
+            {t("nav.settings")}
+          </NavLink>
+          <NavLink to="/developers" role="menuitem" className="user-menu-item" onClick={close}>
+            <IconKey />
+            {t("nav.developers")}
+          </NavLink>
+          <button
+            type="button"
+            role="menuitem"
+            className="user-menu-item is-danger"
+            onClick={() => {
+              setOpen(false);
+              onLogout();
+            }}
+          >
+            <IconLogout />
+            {t("nav.signOut")}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function IconBook() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path
+        d="M2.5 3.5c2-.8 3.8-.6 5.5.6 1.7-1.2 3.5-1.4 5.5-.6v9c-2-.8-3.8-.6-5.5.6-1.7-1.2-3.5-1.4-5.5-.6zM8 4.1v9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconShield() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path
+        d="M8 2 13 4v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconLogout() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path
+        d="M6.5 2.5h-3v11h3M10 5l3 3-3 3M13 8H6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconChevronDown() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path
+        d="m4.5 6.5 3.5 3.5 3.5-3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function IconGrid() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -227,7 +386,7 @@ function IconGrid() {
   );
 }
 
-function IconChat() {
+export function IconChat() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -241,7 +400,7 @@ function IconChat() {
   );
 }
 
-function IconScan() {
+export function IconScan() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -255,7 +414,7 @@ function IconScan() {
   );
 }
 
-function IconTag() {
+export function IconTag() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -277,7 +436,7 @@ function IconTag() {
   );
 }
 
-function IconPulse() {
+export function IconPulse() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -292,7 +451,7 @@ function IconPulse() {
   );
 }
 
-function IconUsage() {
+export function IconUsage() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -306,7 +465,7 @@ function IconUsage() {
   );
 }
 
-function IconReply() {
+export function IconReply() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -321,7 +480,7 @@ function IconReply() {
   );
 }
 
-function IconGuide() {
+export function IconGuide() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -336,7 +495,7 @@ function IconGuide() {
   );
 }
 
-function IconBolt() {
+export function IconBolt() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -350,7 +509,7 @@ function IconBolt() {
   );
 }
 
-function IconSliders() {
+export function IconSliders() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <path
@@ -364,7 +523,7 @@ function IconSliders() {
   );
 }
 
-function IconKey() {
+export function IconKey() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       <circle cx="6" cy="8" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.3" />
