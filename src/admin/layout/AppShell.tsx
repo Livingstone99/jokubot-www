@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 
 import { api, type InboundRow } from "../api.js";
 import { useAuth } from "../auth.js";
-import { JokubotMark } from "../brand/Logo.js";
 import type { MessageKey } from "../i18n.js";
 import {
   IconActivity,
@@ -123,7 +122,7 @@ export function AppShell() {
           <div className="jk-main">
             <header className="jk-header">
               <Link to="/overview" className="jk-header-brand">
-                <img className="jk-header-favicon" src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={30} height={30} />
+                <BotIcon className="jk-header-favicon" size={30} />
                 JokuBot
               </Link>
               <span className="jk-header-title">{t(titleFor(pathname))}</span>
@@ -169,10 +168,26 @@ function Brand() {
   return (
     <Link to="/overview" className="jk-brand">
       <span className="mark" aria-hidden="true">
-        <JokubotMark size={28} />
+        <BotIcon className="jk-bot-icon" size={28} />
       </span>
       <span>JokuBot</span>
     </Link>
+  );
+}
+
+/** Tête du bot de favicon.ico ; sur écran Retina, la même tête en grand (fond transparent). */
+function BotIcon({ className, size }: { className: string; size: number }) {
+  const base = import.meta.env.BASE_URL;
+  return (
+    <img
+      className={className}
+      src={`${base}favicon.ico`}
+      srcSet={`${base}favicon.ico 1x, ${base}jokubot-bot.png 2x`}
+      alt=""
+      width={size}
+      height={size}
+      draggable={false}
+    />
   );
 }
 

@@ -3522,3 +3522,15 @@ a.jk-row:hover {
 [data-theme="dark"] .jk-header-brand img.jk-header-favicon {
   filter: none;
 }
+
+/* Tête du bot (favicon.ico) en couleur, sans le filtre noir et blanc. */
+.jk-brand img.jk-bot-icon,
+[data-theme="dark"] .jk-brand img.jk-bot-icon {
+  filter: none;
+}
+
+.jk-header-brand img.jk-header-favicon,
+.jk-brand img.jk-bot-icon {
+  object-fit: contain;
+  border-radius: 0;
+}
