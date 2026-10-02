@@ -372,7 +372,7 @@ export function TriggersPage() {
 
       {!whatsappReady && !telegramReady ? (
         <p className="banner banner-warn">
-          {t("lit.triggers.48")}{' '}<Link to="/overview">{t("common.home")}</Link>{' '}{t("lit.triggers.49")}
+          {t("lit.triggers.48")}{' '}<Link to="/channels">{t("nav2.channels")}</Link>{' '}{t("lit.triggers.49")}
         </p>
       ) : null}
 
@@ -1067,13 +1067,13 @@ function ReplyChannelHint({
     if (whatsappReady || telegramReady) {
       return (
         <p className="banner banner-warn">
-          {t("lit.triggers.60")}{' '}<Link to="/overview">{t("common.home")}</Link>{' '}{t("lit.triggers.61")}
+          {t("lit.triggers.60")}{' '}<Link to="/channels">{t("nav2.channels")}</Link>{' '}{t("lit.triggers.61")}
         </p>
       );
     }
     return (
       <p className="banner banner-warn">
-        {t("lit.triggers.62")}{' '}<Link to="/overview">{t("common.home")}</Link>{" "}
+        {t("lit.triggers.62")}{' '}<Link to="/channels">{t("nav2.channels")}</Link>{" "}
         {t("lit.triggers.63")}
       </p>
     );
@@ -1084,7 +1084,7 @@ function ReplyChannelHint({
   }
   return (
     <p className="banner banner-warn">
-      {t("lit.triggers.64")}{' '}{channelLabel(channel)} from <Link to="/overview">{t("common.home")}</Link>{" "}
+      {t("lit.triggers.64")}{' '}{channelLabel(channel)} from <Link to="/channels">{t("nav2.channels")}</Link>{" "}
       {t("lit.triggers.65")}
     </p>
   );

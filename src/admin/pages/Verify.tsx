@@ -171,7 +171,7 @@ export function VerifyPage() {
             n="01"
             title={t("verify.step1Title")}
             body={t("verify.step1Body")}
-            to="/overview"
+            to="/channels"
             linkLabel={t("verify.openHome")}
             done={hasChannelSetup}
             status={hasChannelSetup ? t("verify.done") : t("verify.pending")}

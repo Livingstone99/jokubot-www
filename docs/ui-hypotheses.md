@@ -116,3 +116,22 @@ un point, ou quand l'existant ne permettait pas de le suivre à la lettre.
   les descriptions et le menu. Les écrans existants repris tels quels
   (Éditeur complet, Réponses intelligentes) gardent encore une partie de
   l'ancien vocabulaire. **À reprendre si besoin.**
+
+## Tâche 7 — Mes canaux
+
+- **Association WhatsApp (QR code).** L'écran d'association existant
+  (`ChannelConnectCard`), qui était sur l'ancien accueil, s'affiche maintenant
+  en haut de « Mes canaux » dès qu'une association est en cours. Tous les
+  liens « terminer sur l'accueil » mènent désormais à « Mes canaux ».
+- **Envoyer un test.** L'API ne sait pas envoyer de message de test. Le bouton
+  explique comment s'envoyer « test » depuis son téléphone et propose
+  d'ouvrir Messages pour voir le message arriver. **À valider.**
+- **Déconnecter.** Bouton rouge ; une boîte de confirmation affiche « Jokubot
+  ne répondra plus sur ce canal. Continuer ? », puis un toast confirme.
+- **Instructions en 3 étapes.** Réécrites pour WhatsApp et Telegram quand le
+  canal n'est pas connecté.
+- **Paramètres avancés.** Bloc replié contenant la passerelle entrante
+  (adresse à copier, état), l'URL du webhook de complétion (avec envoi de
+  test) et l'historique des livraisons.
+- **Outil.** `scripts/i18n-add.py` ajoute ou met à jour des textes dans
+  `src/admin/i18n.ts` à partir d'un fichier JSON.

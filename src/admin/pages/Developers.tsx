@@ -228,7 +228,7 @@ INGEST_SECRET=${ingestSecret ?? t("dev.rotateReveal")}`;
         </header>
         {!hasChannelSetup ? (
           <p className="banner banner-warn">
-            {t("lit.developers.3")}{' '}<Link to="/overview">{t("common.home")}</Link>{" "}
+            {t("lit.developers.3")}{' '}<Link to="/channels">{t("nav2.channels")}</Link>{" "}
             {t("lit.developers.4")}
           </p>
         ) : null}

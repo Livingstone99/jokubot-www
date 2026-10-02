@@ -6811,3 +6811,150 @@ textarea:focus {
 nav.subtabs {
   flex-direction: row;
 }
+
+/* =====================================================================
+   Tâche 7 — Mes canaux.
+   ===================================================================== */
+
+.channel-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.channel-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.channel-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.channel-panel-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.channel-panel-title h2 {
+  margin: 0;
+  font-size: 18px;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.channel-panel-title span {
+  color: var(--tx2);
+  overflow-wrap: anywhere;
+}
+
+.channel-panel-actions,
+.channel-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.channel-panel .connect-tile-split {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.channel-change summary,
+.advanced-block > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+.channel-change summary::-webkit-details-marker,
+.advanced-block > summary::-webkit-details-marker {
+  display: none;
+}
+
+.channel-change summary::after,
+.advanced-block > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-left: 4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform var(--t-fast) var(--ease-out);
+}
+
+.channel-change[open] summary::after,
+.advanced-block[open] > summary::after {
+  transform: rotate(225deg) translateY(-2px);
+}
+
+.advanced-block {
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  padding: 4px 18px;
+  background: var(--bg);
+}
+
+.advanced-block[open] {
+  padding-bottom: 18px;
+}
+
+.advanced-block .panel {
+  border-color: var(--bd);
+}
+
+.secret-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding-right: 4px;
+  background: var(--bg);
+}
+
+.secret-field input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+}
+
+.secret-field:focus-within {
+  outline: 2px solid var(--rd);
+  outline-offset: 2px;
+}
+
+.copy-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.copy-row code {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--bg2);
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+@media (max-width: 1023px) {
+  .channel-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

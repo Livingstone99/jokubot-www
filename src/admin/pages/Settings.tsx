@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   api,
@@ -17,7 +17,10 @@ import {
 } from "../ChannelLink.js";
 import { useLocale, useT } from "../locale.js";
 import { useTheme } from "../theme.js";
-import { formatWhen } from "../ui.js";
+import { formatWhen, CopyButton } from "../ui.js";
+import { ChannelConnectCard } from "../ChannelConnect.js";
+import { IconEye, IconEyeOff, IconSend } from "../kit/icons.js";
+import { ChannelIcon, ConfirmDialog, StatusDot, useToast } from "../kit/ui.js";
 import { WhatsAppNumberField } from "../WhatsAppNumberField.js";
 
 const REPLY_KEYS: VerificationReplyKey[] = [
@@ -71,7 +74,13 @@ function repliesFromTenant(
   };
 }
 
-export function SettingsPage() {
+export function SettingsPage({ view = "settings" }: { view?: "settings" | "channels" }) {
+  const isChannels = view === "channels";
+  const toast = useToast();
+  const navigate = useNavigate();
+  const [showToken, setShowToken] = useState(false);
+  const [testChannel, setTestChannel] = useState<"whatsapp" | "telegram" | null>(null);
+  const [gateway, setGateway] = useState<{ url: string; ready: boolean } | null>(null);
   const { me, setMe } = useAuth();
   const { theme, setTheme } = useTheme();
   const { locale, setLocale } = useLocale();
@@ -100,6 +109,14 @@ export function SettingsPage() {
   const [testBusy, setTestBusy] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isChannels) return;
+    void api
+      .overview()
+      .then((data) => setGateway({ url: data.gateway.url, ready: data.gateway.ready }))
+      .catch(() => setGateway(null));
+  }, [isChannels]);
 
   useEffect(() => {
     void api
@@ -136,8 +153,10 @@ export function SettingsPage() {
         setWebhookSecret(result.webhookSecret);
       }
       setSaved(true);
+      toast({ text: isChannels ? t("chan.saved") : t("settings.savedToast") });
     } catch (err) {
       setError(err instanceof Error ? err.message : t("settings.saveError"));
+      toast({ text: t("settings.saveErrorToast"), tone: "error" });
     } finally {
       setBusy(false);
     }
@@ -178,385 +197,428 @@ export function SettingsPage() {
     }
   }
 
+  const pairing = Boolean(
+    me?.tenant.whatsappNumber && !me.tenant.whatsappLinked && whatsapp.status !== "disconnected",
+  );
+
   return (
-    <section className="page">
-      <header className="page-head">
-        <div>
-          <p className="eyebrow">{t("settings.eyebrow")}</p>
-          <h1>{isIndividual ? t("settings.titleIndividual") : t("settings.title")}</h1>
-          <p className="lede">
-            {isIndividual ? t("settings.ledeIndividual") : t("settings.lede")}
-          </p>
+    <section className={isChannels ? "page channels-page" : "page settings-page"}>
+      <p className="lede page-intro">{isChannels ? t("chan.lede") : t("settings.lede2")}</p>
+
+      {isChannels && pairing ? (
+        <div className="connect-slot">
+          <ChannelConnectCard />
         </div>
-      </header>
+      ) : null}
 
       <form className="stack" onSubmit={(event) => void onSubmit(event)}>
-        <article className="panel">
-          <header className="panel-head">
-            <div>
-              <h2>{t("settings.appearance")}</h2>
-              <p className="hint">{t("theme.hint")}</p>
-            </div>
-          </header>
-          <div className="theme-choices">
-            <button
-              type="button"
-              className={theme === "light" ? "primary compact" : "secondary compact"}
-              aria-pressed={theme === "light"}
-              onClick={() => setTheme("light")}
-            >
-              {t("theme.light")}
-            </button>
-            <button
-              type="button"
-              className={theme === "dark" ? "primary compact" : "secondary compact"}
-              aria-pressed={theme === "dark"}
-              onClick={() => setTheme("dark")}
-            >
-              {t("theme.dark")}
-            </button>
-          </div>
-        </article>
-
-        <article className="panel">
-          <header className="panel-head">
-            <div>
-              <h2>{isIndividual ? t("settings.account") : t("settings.business")}</h2>
-              <p className="hint">
-                {isIndividual ? t("settings.accountHint") : t("settings.businessHint")}
-              </p>
-            </div>
-          </header>
-          <label>
-            {isIndividual ? t("settings.accountName") : t("settings.businessName")}
-            <input value={name} onChange={(event) => setName(event.target.value)} />
-          </label>
-        </article>
-
-        <article className="panel">
-          <header className="panel-head">
-            <div>
-              <h2>{t("settings.channels")}</h2>
-              <p className="hint">
-                {t("settings.channelsHint")}
-              </p>
-            </div>
-          </header>
-          <div className="channel-setup">
-            <div className={channelBlockClass(whatsapp.status)}>
-              <div className="channel-block-head">
-                <div>
-                  <strong>{t("common.whatsapp")}</strong>
-                  <span className={channelStatusClass(whatsapp.status)}>
-                    <ChannelStatusMark status={whatsapp.status} />
-                    {whatsapp.label}
-                  </span>
+        {isChannels ? (
+          <>
+            <div className="channel-panels">
+              <article className="panel channel-panel">
+                <header className="channel-panel-head">
+                  <ChannelIcon channel="whatsapp" size={22} />
+                  <div className="channel-panel-title">
+                    <h2>{t("common.whatsapp")}</h2>
+                    <span>{me?.tenant.whatsappNumber || t("home.notConnected")}</span>
+                  </div>
+                  <StatusDot tone={whatsapp.status === "connected" ? "ok" : "off"} label={whatsapp.label} />
+                </header>
+                {whatsapp.status === "connected" ? null : <p className="hint">{whatsapp.detail}</p>}
+                <div className="channel-panel-actions">
+                  <button
+                    type="button"
+                    className="secondary compact"
+                    disabled={!(whatsapp.status === "connected")}
+                    onClick={() => setTestChannel("whatsapp")}
+                  >
+                    <IconSend size={16} />
+                    {t("chan.sendTest")}
+                  </button>
+                  <ChannelLinkControls channel="whatsapp" />
                 </div>
-                {me?.tenant.whatsappLinked && me.tenant.whatsappNumber ? (
-                  <p className="connect-done-id">{me.tenant.whatsappNumber}</p>
-                ) : null}
-              </div>
-              <ChannelLinkControls channel="whatsapp" />
-              {whatsapp.status === "connected" ? null : (
-                <p className="hint">{whatsapp.detail}</p>
-              )}
-              <div className="connect-tile-split">
-                <WhatsAppNumberField
-                  value={whatsappNumber}
-                  preferredCountry={me?.tenant.country}
-                  onChange={setWhatsappNumber}
-                  hint={
-                    whatsapp.status === "connected" ||
-                    whatsapp.status === "reconnecting" ||
-                    whatsapp.status === "paused"
-                      ? t("settings.waHintLinked")
-                      : t("settings.waHintSetup")
-                  }
-                />
-                {whatsapp.status === "connected" ||
-                whatsapp.status === "reconnecting" ||
-                whatsapp.status === "paused" ? (
-                  <p className="hint">
-                    {t("settings.waKeep")}
-                  </p>
+                {whatsapp.status === "connected" ? (
+                  <details className="channel-change">
+                    <summary>{t("chan.changeNumber")}</summary>
+                    <WhatsAppNumberField
+                      value={whatsappNumber}
+                      preferredCountry={me?.tenant.country}
+                      onChange={setWhatsappNumber}
+                      hint={t("settings.waHintLinked")}
+                    />
+                  </details>
                 ) : (
-                  <aside className="connect-howto">
-                    <p className="connect-howto-title">{t("settings.howto")}</p>
-                    <ol>
-                      <li>{t("settings.waStep1")}</li>
-                      <li>{t("settings.waStep2")}</li>
-                      <li>{t("settings.waStep3")}</li>
-                      <li>{t("settings.waStep4")}</li>
-                    </ol>
-                  </aside>
+                  <div className="connect-tile-split">
+                    <WhatsAppNumberField
+                      value={whatsappNumber}
+                      preferredCountry={me?.tenant.country}
+                      onChange={setWhatsappNumber}
+                      hint={t("settings.waHintSetup")}
+                    />
+                    <aside className="connect-howto">
+                      <p className="connect-howto-title">{t("settings.howto")}</p>
+                      <ol>
+                        <li>{t("chan.wa1")}</li>
+                        <li>{t("chan.wa2")}</li>
+                        <li>{t("chan.wa3")}</li>
+                      </ol>
+                    </aside>
+                  </div>
                 )}
-              </div>
-            </div>
-            <div className={channelBlockClass(telegram.status)}>
-              <div className="channel-block-head">
-                <div>
-                  <strong>{t("common.telegram")}</strong>
-                  <span className={channelStatusClass(telegram.status)}>
-                    <ChannelStatusMark status={telegram.status} />
-                    {telegram.label}
-                  </span>
-                </div>
-                {me?.tenant.telegramBotUsername ? (
-                  <p className="connect-done-id">@{me.tenant.telegramBotUsername}</p>
-                ) : null}
-              </div>
-              {telegram.status === "connected" ? null : (
-                <p className="hint">{telegram.detail}</p>
-              )}
-              <ChannelLinkControls channel="telegram" />
-              <div className="connect-tile-split">
-                <label>
-                  {t("settings.botToken")}
-                  <input
-                    value={telegramToken}
-                    onChange={(event) => setTelegramToken(event.target.value)}
-                    type="password"
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder="123456789:AAH..."
-                  />
-                  <span className="hint">
-                    {telegram.status === "connected" || telegram.status === "degraded"
-                      ? t("settings.tgHintReplace")
-                      : telegram.status === "disconnected" && me?.tenant.telegramCanReconnect
-                        ? t("settings.tgHintReconnect")
-                        : t("settings.tgHintSetup")}
-                  </span>
-                </label>
-                {telegram.status === "connected" || telegram.status === "degraded" ? (
-                  <p className="hint">
-                    {t("settings.tgKeep")}
-                  </p>
-                ) : (
-                  <aside className="connect-howto">
-                    <p className="connect-howto-title">{t("settings.howto")}</p>
-                    <ol>
-                      <li>{t("settings.tgStep1")}</li>
-                      <li>{t("settings.tgStep2")}</li>
-                      <li>{t("settings.tgStep3")}</li>
-                      <li>{t("settings.tgStep4")}</li>
-                    </ol>
-                  </aside>
-                )}
-              </div>
-            </div>
-          </div>
-          {whatsapp.status === "pending" ? (
-            <p className="banner banner-warn">
-              {t("lit.settings.42")}{" "}
-              <Link to="/overview">{t("settings.finishHome")}</Link>{' '}{t("lit.settings.43")}
-            </p>
-          ) : null}
-          {telegram.status === "pending" ? (
-            <p className="banner banner-warn">
-              {t("settings.tgBanner")}
-            </p>
-          ) : null}
-        </article>
+              </article>
 
-        <article className="panel">
-          <header className="panel-head">
-            <div>
-              <h2>{t("settings.replies")}</h2>
-              <p className="hint">{t("settings.repliesHint")}</p>
-            </div>
-          </header>
-          <div className="reply-fields">
-            {REPLY_KEYS.map((key) => {
-              const defaults = {
-                ...FALLBACK_REPLIES,
-                ...me?.tenant.verificationReplyDefaults,
-              };
-              const isCustom = replies[key] !== defaults[key];
-              const fieldId = `verification-reply-${key}`;
-              return (
-                <div key={key} className="reply-field">
-                  <div className="label-row">
-                    <label htmlFor={fieldId}>{t(REPLY_LABEL[key])}</label>
-                    {isCustom ? (
+              <article className="panel channel-panel">
+                <header className="channel-panel-head">
+                  <ChannelIcon channel="telegram" size={22} />
+                  <div className="channel-panel-title">
+                    <h2>{t("common.telegram")}</h2>
+                    <span>
+                      {me?.tenant.telegramBotUsername ? `@${me.tenant.telegramBotUsername}` : t("home.notConnected")}
+                    </span>
+                  </div>
+                  <StatusDot tone={telegram.status === "connected" ? "ok" : "off"} label={telegram.label} />
+                </header>
+                {telegram.status === "connected" ? null : <p className="hint">{telegram.detail}</p>}
+                <div className="channel-panel-actions">
+                  <button
+                    type="button"
+                    className="secondary compact"
+                    disabled={!(telegram.status === "connected")}
+                    onClick={() => setTestChannel("telegram")}
+                  >
+                    <IconSend size={16} />
+                    {t("chan.sendTest")}
+                  </button>
+                  <ChannelLinkControls channel="telegram" />
+                </div>
+                <div className="connect-tile-split">
+                  <label className="field-block">
+                    {t("settings.botToken")}
+                    <span className="secret-field">
+                      <input
+                        value={telegramToken}
+                        onChange={(event) => setTelegramToken(event.target.value)}
+                        type={showToken ? "text" : "password"}
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder="123456789:AAH..."
+                      />
                       <button
                         type="button"
-                        className="ghost compact"
-                        onClick={() =>
-                          setReplies((current) => ({
-                            ...current,
-                            [key]: defaults[key],
-                          }))
-                        }
+                        className="header-icon is-small"
+                        aria-label={showToken ? t("chan.hideToken") : t("chan.showToken")}
+                        aria-pressed={showToken}
+                        onClick={() => setShowToken((value) => !value)}
                       >
-                        {t("settings.repliesReset")}
+                        {showToken ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                       </button>
-                    ) : null}
-                  </div>
-                  <textarea
-                    id={fieldId}
-                    className="compact"
-                    rows={2}
-                    maxLength={1000}
-                    value={replies[key]}
-                    placeholder={defaults[key]}
-                    onChange={(event) =>
-                      setReplies((current) => ({
-                        ...current,
-                        [key]: event.target.value,
-                      }))
-                    }
-                  />
+                    </span>
+                    <span className="hint">
+                      {telegram.status === "connected" || telegram.status === "degraded"
+                        ? t("settings.tgHintReplace")
+                        : telegram.status === "disconnected" && me?.tenant.telegramCanReconnect
+                          ? t("settings.tgHintReconnect")
+                          : t("settings.tgHintSetup")}
+                    </span>
+                  </label>
+                  {telegram.status === "connected" ? null : (
+                    <aside className="connect-howto">
+                      <p className="connect-howto-title">{t("settings.howto")}</p>
+                      <ol>
+                        <li>{t("chan.tg1")}</li>
+                        <li>{t("chan.tg2")}</li>
+                        <li>{t("chan.tg3")}</li>
+                      </ol>
+                    </aside>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        </article>
+              </article>
+            </div>
 
-        <article className="panel">
-          <header className="panel-head">
-            <div>
-              <h2>{t("overview.webhookName")}</h2>
-              <p className="hint">
-                {t("lit.settings.44")}{' '}<code>verification.completed</code>{' '}{t("lit.settings.45")}{' '}<code>message.received</code>{' '}{t("lit.settings.46")}
-              </p>
-            </div>
-          </header>
-          <label>
-            {t("settings.webhookUrl")}
-            <input
-              value={webhookUrl}
-              onChange={(event) => setWebhookUrl(event.target.value)}
-              placeholder="https://your-app.example/webhooks/verify"
-            />
-          </label>
-          {webhookSecret ? (
-            <p className="secret">
-              <span>
-                {t("settings.webhookSecretOnce")}{' '}<code>{webhookSecret}</code>
-              </span>
-            </p>
-          ) : me?.tenant.hasWebhookSecret ? (
-            <p className="hint">{t("settings.webhookSecretStored")}</p>
-          ) : (
-            <p className="hint">{t("settings.webhookSecretNew")}</p>
-          )}
-          {me?.tenant.webhookUrl ? (
-            <div className="panel-actions">
-              <button
-                type="button"
-                className="secondary compact"
-                disabled={testBusy || busy}
-                onClick={() => void onTestWebhook()}
-              >
-                {testBusy ? "Sending…" : t("settings.sendTest")}
-              </button>
-            </div>
-          ) : null}
-          {testError ? (
-            <p className="banner banner-danger" role="alert">
-              {testError}
-            </p>
-          ) : null}
-          {testResult ? <p className="ok">{testResult}</p> : null}
-        </article>
+            <details className="advanced-block">
+              <summary>{t("chan.advanced")}</summary>
+              <div className="stack">
+                <article className="panel">
+                  <header className="panel-head">
+                    <div>
+                      <h2>{t("chan.gateway")}</h2>
+                      <p className="hint">{t("chan.gatewayHint")}</p>
+                    </div>
+                  </header>
+                  {gateway ? (
+                    <div className="copy-row">
+                      <code>{gateway.url}</code>
+                      <CopyButton value={gateway.url} />
+                      <StatusDot tone={gateway.ready ? "ok" : "warn"} label={gateway.ready ? t("chan.gatewayReady") : t("chan.gatewayNotReady")} />
+                    </div>
+                  ) : (
+                    <p className="hint">{t("chan.gatewayUnknown")}</p>
+                  )}
+                </article>
+                <article className="panel">
+                  <header className="panel-head">
+                    <div>
+                      <h2>{t("overview.webhookName")}</h2>
+                      <p className="hint">
+                        {t("lit.settings.44")}{' '}<code>verification.completed</code>{' '}{t("lit.settings.45")}{' '}<code>message.received</code>{' '}{t("lit.settings.46")}
+                      </p>
+                    </div>
+                  </header>
+                  <label>
+                    {t("settings.webhookUrl")}
+                    <input
+                      value={webhookUrl}
+                      onChange={(event) => setWebhookUrl(event.target.value)}
+                      placeholder="https://your-app.example/webhooks/verify"
+                    />
+                  </label>
+                  {webhookSecret ? (
+                    <p className="secret">
+                      <span>
+                        {t("settings.webhookSecretOnce")}{' '}<code>{webhookSecret}</code>
+                      </span>
+                    </p>
+                  ) : me?.tenant.hasWebhookSecret ? (
+                    <p className="hint">{t("settings.webhookSecretStored")}</p>
+                  ) : (
+                    <p className="hint">{t("settings.webhookSecretNew")}</p>
+                  )}
+                  {me?.tenant.webhookUrl ? (
+                    <div className="panel-actions">
+                      <button
+                        type="button"
+                        className="secondary compact"
+                        disabled={testBusy || busy}
+                        onClick={() => void onTestWebhook()}
+                      >
+                        {testBusy ? t("settings.sending") : t("settings.sendTest")}
+                      </button>
+                    </div>
+                  ) : null}
+                  {testError ? (
+                    <p className="banner banner-danger" role="alert">
+                      {testError}
+                    </p>
+                  ) : null}
+                  {testResult ? <p className="ok">{testResult}</p> : null}
+                </article>
 
-        <article className="panel">
-          <header className="panel-head">
-            <div>
-              <h2>{t("settings.deliveries")}</h2>
-              <p className="hint">{t("settings.deliveriesHint")}</p>
-            </div>
-          </header>
-          {deliveries === null ? (
-            <div className="skeleton-table" aria-hidden="true" />
-          ) : deliveries.length === 0 ? (
-            <p className="hint">{t("settings.deliveriesEmpty")}</p>
-          ) : (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>{t("settings.colWhen")}</th>
-                    <th>{t("settings.colEvent")}</th>
-                    <th>{t("settings.colStatus")}</th>
-                    <th>{t("settings.colAttempts")}</th>
-                    <th>{t("settings.colError")}</th>
-                    <th>{t("settings.colReplay")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deliveries.map((row) => (
-                    <tr key={row.id}>
-                      <td>{formatWhen(row.createdAt)}</td>
-                      <td>
-                        <code>{row.event}</code>
-                      </td>
-                      <td>
-                        <span className={`pill pill-${deliveryTone(row.status)}`}>
-                          {row.status}
-                        </span>
-                      </td>
-                      <td>{row.attemptCount}</td>
-                      <td className="muted">
-                        {row.lastError ?? t("common.dash")}
-                      </td>
-                      <td>
-                        {row.status === "delivered" ? (
-                          t("common.dash")
-                        ) : (
+                <article className="panel">
+                  <header className="panel-head">
+                    <div>
+                      <h2>{t("settings.deliveries")}</h2>
+                      <p className="hint">{t("settings.deliveriesHint")}</p>
+                    </div>
+                  </header>
+                  {deliveries === null ? (
+                    <div className="skeleton-table" aria-hidden="true" />
+                  ) : deliveries.length === 0 ? (
+                    <p className="hint">{t("settings.deliveriesEmpty")}</p>
+                  ) : (
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>{t("settings.colWhen")}</th>
+                            <th>{t("settings.colEvent")}</th>
+                            <th>{t("settings.colStatus")}</th>
+                            <th>{t("settings.colAttempts")}</th>
+                            <th>{t("settings.colError")}</th>
+                            <th>{t("settings.colReplay")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {deliveries.map((row) => (
+                            <tr key={row.id}>
+                              <td>{formatWhen(row.createdAt)}</td>
+                              <td>
+                                <code>{row.event}</code>
+                              </td>
+                              <td>
+                                <span className={`pill pill-${deliveryTone(row.status)}`}>
+                                  {row.status}
+                                </span>
+                              </td>
+                              <td>{row.attemptCount}</td>
+                              <td className="muted">
+                                {row.lastError ?? t("common.dash")}
+                              </td>
+                              <td>
+                                {row.status === "delivered" ? (
+                                  t("common.dash")
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="ghost compact"
+                                    disabled={replayId === row.id || busy}
+                                    onClick={() => void onReplay(row.id)}
+                                  >
+                                    {replayId === row.id
+                                      ? t("settings.replaying")
+                                      : t("settings.replay")}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </article>
+
+              </div>
+            </details>
+          </>
+        ) : (
+          <>
+            <article className="panel">
+              <header className="panel-head">
+                <div>
+                  <h2>{t("settings.appearance")}</h2>
+                  <p className="hint">{t("theme.hint")}</p>
+                </div>
+              </header>
+              <div className="theme-choices">
+                <button
+                  type="button"
+                  className={theme === "light" ? "primary compact" : "secondary compact"}
+                  aria-pressed={theme === "light"}
+                  onClick={() => setTheme("light")}
+                >
+                  {t("theme.light")}
+                </button>
+                <button
+                  type="button"
+                  className={theme === "dark" ? "primary compact" : "secondary compact"}
+                  aria-pressed={theme === "dark"}
+                  onClick={() => setTheme("dark")}
+                >
+                  {t("theme.dark")}
+                </button>
+              </div>
+            </article>
+
+            <article className="panel">
+              <header className="panel-head">
+                <div>
+                  <h2>{isIndividual ? t("settings.account") : t("settings.business")}</h2>
+                  <p className="hint">
+                    {isIndividual ? t("settings.accountHint") : t("settings.businessHint")}
+                  </p>
+                </div>
+              </header>
+              <label>
+                {isIndividual ? t("settings.accountName") : t("settings.businessName")}
+                <input value={name} onChange={(event) => setName(event.target.value)} />
+              </label>
+            </article>
+
+            <article className="panel">
+              <header className="panel-head">
+                <div>
+                  <h2>{t("settings.replies")}</h2>
+                  <p className="hint">{t("settings.repliesHint")}</p>
+                </div>
+              </header>
+              <div className="reply-fields">
+                {REPLY_KEYS.map((key) => {
+                  const defaults = {
+                    ...FALLBACK_REPLIES,
+                    ...me?.tenant.verificationReplyDefaults,
+                  };
+                  const isCustom = replies[key] !== defaults[key];
+                  const fieldId = `verification-reply-${key}`;
+                  return (
+                    <div key={key} className="reply-field">
+                      <div className="label-row">
+                        <label htmlFor={fieldId}>{t(REPLY_LABEL[key])}</label>
+                        {isCustom ? (
                           <button
                             type="button"
                             className="ghost compact"
-                            disabled={replayId === row.id || busy}
-                            onClick={() => void onReplay(row.id)}
+                            onClick={() =>
+                              setReplies((current) => ({
+                                ...current,
+                                [key]: defaults[key],
+                              }))
+                            }
                           >
-                            {replayId === row.id
-                              ? t("settings.replaying")
-                              : t("settings.replay")}
+                            {t("settings.repliesReset")}
                           </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </article>
+                        ) : null}
+                      </div>
+                      <textarea
+                        id={fieldId}
+                        className="compact"
+                        rows={2}
+                        maxLength={1000}
+                        value={replies[key]}
+                        placeholder={defaults[key]}
+                        onChange={(event) =>
+                          setReplies((current) => ({
+                            ...current,
+                            [key]: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </article>
 
-        <article className="panel">
-          <header className="panel-head">
-            <div>
-              <h2>{t("settings.retention")}</h2>
-              <p className="hint">{t("settings.retentionHint")}</p>
-            </div>
-          </header>
-          <label>
-            {t("settings.retentionDays")}
-            <input
-              type="number"
-              min={7}
-              max={365}
-              value={inboundRetentionDays}
-              onChange={(event) => setInboundRetentionDays(event.target.value)}
-            />
-            <span className="hint">{t("settings.retentionBounds")}</span>
-          </label>
-        </article>
+            <article className="panel">
+              <header className="panel-head">
+                <div>
+                  <h2>{t("settings.retention")}</h2>
+                  <p className="hint">{t("settings.retentionHint")}</p>
+                </div>
+              </header>
+              <label>
+                {t("settings.retentionDays")}
+                <input
+                  type="number"
+                  min={7}
+                  max={365}
+                  value={inboundRetentionDays}
+                  onChange={(event) => setInboundRetentionDays(event.target.value)}
+                />
+                <span className="hint">{t("settings.retentionBounds")}</span>
+              </label>
+            </article>
+
+          </>
+        )}
 
         {error ? (
           <p className="banner banner-danger" role="alert">
             {error}
           </p>
         ) : null}
-        {saved ? <p className="ok">{t("settings.saved")}</p> : null}
+        {saved ? <p className="ok">{isChannels ? t("chan.saved") : t("settings.saved")}</p> : null}
         <div>
           <button type="submit" className="primary" disabled={busy}>
-            {busy ? "Saving…" : t("settings.save")}
+            {busy ? t("settings.saving") : isChannels ? t("chan.save") : t("settings.save")}
           </button>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={testChannel !== null}
+        title={t("chan.testTitle")}
+        body={
+          testChannel === "telegram"
+            ? t("chan.testBodyTelegram", { bot: `@${me?.tenant.telegramBotUsername ?? ""}` })
+            : t("chan.testBodyWhatsapp", { number: me?.tenant.whatsappNumber ?? "" })
+        }
+        confirmLabel={t("chan.openMessages")}
+        onConfirm={() => {
+          setTestChannel(null);
+          navigate("/messages");
+        }}
+        onCancel={() => setTestChannel(null)}
+      />
     </section>
   );
 }

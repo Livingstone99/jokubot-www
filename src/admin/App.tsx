@@ -95,7 +95,7 @@ export function App() {
                 <Route path="reactions" element={<ReactionsPage />} />
                 <Route path="editor" element={<TriggersPage />} />
               </Route>
-              <Route path="channels" element={<SettingsPage />} />
+              <Route path="channels" element={<SettingsPage view="channels" />} />
               <Route path="usage" element={<UsagePage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="more" element={<MorePage />} />

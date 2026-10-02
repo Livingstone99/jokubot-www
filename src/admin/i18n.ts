@@ -433,8 +433,8 @@ const en = {
     "Complete these steps once. After setup, operators can verify users from this page.",
   "verify.notReady": "Verification is not ready yet. Connect WhatsApp or Telegram first.",
   "verify.step1Title": "Connect a channel",
-  "verify.step1Body": "Link WhatsApp or Telegram on Home so inbound codes can arrive.",
-  "verify.openHome": "Open Home",
+  "verify.step1Body": "Link WhatsApp or Telegram in My channels so inbound codes can arrive.",
+  "verify.openHome": "Open My channels",
   "verify.step2Title": "Add a webhook",
   "verify.step2Body": "Settings receives signed verification events on your backend.",
   "verify.openSettings": "Open Settings",
@@ -466,9 +466,9 @@ const en = {
   "verify.customPlaceholder": "Hi, send this code to verify your WhatsApp number:",
   "verify.customHint": "Optional. WhatsApp deep links prefill this text plus the code.",
   "verify.whatsappBlocked":
-    "Link WhatsApp from Home before issuing a code. Scan the QR or enter the pairing code on your phone.",
+    "Link WhatsApp from My channels before issuing a code. Scan the QR or enter the pairing code on your phone.",
   "verify.telegramBlocked":
-    "Connect Telegram from Home with a BotFather token before issuing a code.",
+    "Connect Telegram from My channels with a BotFather token before issuing a code.",
   "verify.contactRequired": "Select a country and enter the customer number.",
   "verify.createError": "Could not create session.",
   "verify.loadError": "Could not load sessions.",
@@ -601,14 +601,14 @@ const en = {
     "Customers send a verification code from these apps. You only need one to start.",
   "settings.numberSaved": "Number saved — not linked",
   "settings.waHintLinked":
-    "Change this only if you need to link a different number from Home.",
+    "Change this only if you need to link a different number from My channels.",
   "settings.waHintSetup":
     "WhatsApp is connected only after you link the number on your phone.",
   "settings.waKeep":
-    "This number is already linked. Save a different number, then finish pairing from Home.",
+    "This number is already linked. Save a different number, then finish pairing from My channels.",
   "settings.howto": "What to do",
   "settings.waStep1": "Select the country, then enter the WhatsApp number.",
-  "settings.waStep2": "Save, then finish linking from Home.",
+  "settings.waStep2": "Save, then finish linking from My channels.",
   "settings.waStep3": "On your phone: WhatsApp → Settings → Linked devices.",
   "settings.waStep4": "Scan the QR or enter the pairing code.",
   "settings.botToken": "Bot token",
@@ -624,10 +624,10 @@ const en = {
   "settings.tgStep3": "Copy the bot token BotFather shows you.",
   "settings.tgStep4": "Paste the token here and save.",
   "settings.waBanner":
-    "This WhatsApp number is saved but not linked yet. Finish linking from Home with the QR or pairing code on your phone.",
-  "settings.finishHome": "Finish linking from Home",
+    "This WhatsApp number is saved but not linked yet. Finish linking from My channels with the QR or pairing code on your phone.",
+  "settings.finishHome": "Finish linking from My channels",
   "settings.tgBanner":
-    "Telegram needs a bot token from BotFather, not only a username. Paste the token above or on Home.",
+    "Telegram needs a bot token from BotFather, not only a username. Paste the token above or in My channels.",
   "settings.webhook": "Completion webhook",
   "settings.webhookHint":
     "Signed verification.completed when a code is claimed, and message.received when a trigger matches. Trust this, not the browser websocket.",
@@ -878,7 +878,7 @@ const en = {
     "Match inbound WhatsApp or Telegram text, photos, voice notes, and files, then notify your app or send a reply. A chat-agent reply keeps the recent thread while the customer is still writing. Built-in verification still runs when the message contains a code.",
   "triggers.new": "New trigger",
   "triggers.connectBanner":
-    "Connect a channel from Home before replies can go out. Verification codes still work once the channel is linked.",
+    "Connect a channel from My channels before replies can go out. Verification codes still work once the channel is linked.",
   "triggers.homeLink": "Home",
   "triggers.edit": "Edit trigger",
   "triggers.formHint": "Place this rule with the drag handle after you save.",
@@ -999,10 +999,10 @@ const en = {
   "triggers.usedFallback": " · used fallback",
   "triggers.replyBothReady": "A match replies on the app the customer wrote from.",
   "triggers.replyBothPartial":
-    "Replies go out on the app that received the message. Connect the other from Home if you need both.",
+    "Replies go out on the app that received the message. Connect the other from My channels if you need both.",
   "triggers.replyNeedChannel":
-    "Connect WhatsApp or Telegram from Home before a reply can go out.",
-  "triggers.replyNeedThis": "Connect {channel} from Home before this reply can go out.",
+    "Connect WhatsApp or Telegram from My channels before a reply can go out.",
+  "triggers.replyNeedThis": "Connect {channel} from My channels before this reply can go out.",
   "triggers.whenAnyBoth": "any WhatsApp or Telegram message",
   "triggers.whenAnyOne": "any {channel} message",
   "triggers.whenCode": "a verification code",
@@ -1358,8 +1358,8 @@ const en = {
   "lit.developers.7": "Send the encrypted code to",
   "lit.developers.8": ", from the sender number above.",
   "lit.developers.9": ", the Telegram bot bound on this workspace.",
-  "lit.developers.10": "Link WhatsApp on Home before generating a WhatsApp code.",
-  "lit.developers.11": "Connect Telegram on Home before generating a Telegram code.",
+  "lit.developers.10": "Link WhatsApp in My channels before generating a WhatsApp code.",
+  "lit.developers.11": "Connect Telegram in My channels before generating a Telegram code.",
   "lit.developers.12": "Generate encrypted code",
   "lit.developers.13": "Send this encrypted code as a Telegram message to",
   "lit.developers.14": ". That is the bot bound on this workspace.",
@@ -1632,6 +1632,35 @@ const en = {
   "auto.previewEmpty": "Your reply will appear here.",
   "auto.previewBoth": "Sent on WhatsApp and Telegram.",
   "auto.previewOne": "Sent on {channel} only.",
+  "chan.lede": "Connect WhatsApp and Telegram, test them, or disconnect them.",
+  "chan.sendTest": "Send a test",
+  "chan.changeNumber": "Link a different number",
+  "chan.wa1": "Enter the WhatsApp number your customers already write to, then save.",
+  "chan.wa2": "On your phone, open WhatsApp → Settings → Linked devices → Link a device.",
+  "chan.wa3": "Scan the QR code shown on this page, or type the pairing code.",
+  "chan.tg1": "In Telegram, write to @BotFather and create a bot with /newbot.",
+  "chan.tg2": "Copy the token BotFather gives you (it looks like 123456:AAH…).",
+  "chan.tg3": "Paste it here, then save.",
+  "chan.showToken": "Show the token",
+  "chan.hideToken": "Hide the token",
+  "chan.advanced": "Advanced settings",
+  "chan.gateway": "Inbound gateway",
+  "chan.gatewayHint": "Address that receives your WhatsApp and Telegram messages.",
+  "chan.gatewayReady": "Ready",
+  "chan.gatewayNotReady": "Not ready",
+  "chan.gatewayUnknown": "The gateway address is not available right now.",
+  "chan.saved": "Channels saved.",
+  "chan.testTitle": "Send a test",
+  "chan.testBodyWhatsapp": "From your phone, send “test” on WhatsApp to {number}. The message will appear in Messages within a few seconds.",
+  "chan.testBodyTelegram": "From your phone, send “test” on Telegram to {bot}. The message will appear in Messages within a few seconds.",
+  "chan.openMessages": "Open Messages",
+  "chan.disconnectTitle": "Disconnect {channel}?",
+  "chan.disconnectBody": "Jokubot will no longer reply on this channel. Continue?",
+  "chan.disconnected": "{channel} disconnected.",
+  "settings.lede2": "Your profile, language, theme and how Jokubot behaves.",
+  "settings.savedToast": "Settings saved.",
+  "settings.saveErrorToast": "Settings were not saved. Check your connection, then try again.",
+  "chan.save": "Save",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -2071,8 +2100,8 @@ const fr: Record<MessageKey, string> = {
     "La vérification n’est pas prête. Connectez d’abord WhatsApp ou Telegram.",
   "verify.step1Title": "Connecter un canal",
   "verify.step1Body":
-    "Liez WhatsApp ou Telegram depuis l’accueil pour que les codes arrivent.",
-  "verify.openHome": "Ouvrir l’accueil",
+    "Liez WhatsApp ou Telegram depuis Mes canaux pour que les codes arrivent.",
+  "verify.openHome": "Ouvrir Mes canaux",
   "verify.step2Title": "Ajouter un webhook",
   "verify.step2Body":
     "Les réglages reçoivent les événements de vérification signés sur votre backend.",
@@ -2108,9 +2137,9 @@ const fr: Record<MessageKey, string> = {
   "verify.customHint":
     "Optionnel. Les liens WhatsApp préremplissent ce texte plus le code.",
   "verify.whatsappBlocked":
-    "Liez WhatsApp depuis l’accueil avant d’émettre un code. Scannez le QR ou saisissez le code d’appariement sur le téléphone.",
+    "Liez WhatsApp depuis Mes canaux avant d’émettre un code. Scannez le QR ou saisissez le code d’appariement sur le téléphone.",
   "verify.telegramBlocked":
-    "Connectez Telegram depuis l’accueil avec un jeton BotFather avant d’émettre un code.",
+    "Connectez Telegram depuis Mes canaux avec un jeton BotFather avant d’émettre un code.",
   "verify.contactRequired": "Choisissez un pays et saisissez le numéro du client.",
   "verify.createError": "Création de la session impossible.",
   "verify.loadError": "Chargement des sessions impossible.",
@@ -2243,14 +2272,14 @@ const fr: Record<MessageKey, string> = {
     "Les clients envoient un code depuis ces applications. Un seul canal suffit pour commencer.",
   "settings.numberSaved": "Numéro enregistré — non lié",
   "settings.waHintLinked":
-    "Changez-le seulement si vous devez lier un autre numéro depuis l’accueil.",
+    "Changez-le seulement si vous devez lier un autre numéro depuis Mes canaux.",
   "settings.waHintSetup":
     "WhatsApp n’est connecté qu’après liaison du numéro sur le téléphone.",
   "settings.waKeep":
-    "Ce numéro est déjà lié. Enregistrez un autre numéro, puis terminez l’appariement depuis l’accueil.",
+    "Ce numéro est déjà lié. Enregistrez un autre numéro, puis terminez l’appariement depuis Mes canaux.",
   "settings.howto": "À faire",
   "settings.waStep1": "Choisissez le pays, puis saisissez le numéro WhatsApp.",
-  "settings.waStep2": "Enregistrez, puis terminez la liaison depuis l’accueil.",
+  "settings.waStep2": "Enregistrez, puis terminez la liaison depuis Mes canaux.",
   "settings.waStep3": "Sur le téléphone : WhatsApp → Réglages → Appareils liés.",
   "settings.waStep4": "Scannez le QR ou saisissez le code d’appariement.",
   "settings.botToken": "Jeton du bot",
@@ -2266,10 +2295,10 @@ const fr: Record<MessageKey, string> = {
   "settings.tgStep3": "Copiez le jeton affiché par BotFather.",
   "settings.tgStep4": "Collez le jeton ici et enregistrez.",
   "settings.waBanner":
-    "Ce numéro WhatsApp est enregistré mais pas encore lié. Terminez la liaison depuis l’accueil avec le QR ou le code d’appariement.",
-  "settings.finishHome": "Terminer la liaison depuis l’accueil",
+    "Ce numéro WhatsApp est enregistré mais pas encore lié. Terminez la liaison depuis Mes canaux avec le QR ou le code d’appariement.",
+  "settings.finishHome": "Terminer la liaison depuis Mes canaux",
   "settings.tgBanner":
-    "Telegram exige un jeton BotFather, pas seulement un nom d’utilisateur. Collez le jeton ci-dessus ou sur l’accueil.",
+    "Telegram exige un jeton BotFather, pas seulement un nom d’utilisateur. Collez le jeton ci-dessus ou dans Mes canaux.",
   "settings.webhook": "Webhook de clôture",
   "settings.webhookHint":
     "verification.completed signé quand un code est réclamé, et message.received quand un déclencheur correspond. Fiez-vous à cela, pas au websocket du navigateur.",
@@ -2525,7 +2554,7 @@ const fr: Record<MessageKey, string> = {
     "Repérez le texte, les photos, les notes vocales et les fichiers WhatsApp ou Telegram, puis notifiez votre app ou envoyez une réponse. Une réponse d’agent garde le fil récent tant que le client écrit. La vérification intégrée s’exécute encore si le message contient un code.",
   "triggers.new": "Nouveau déclencheur",
   "triggers.connectBanner":
-    "Connectez un canal depuis l’accueil avant d’envoyer des réponses. Les codes de vérification fonctionnent dès que le canal est lié.",
+    "Connectez un canal depuis Mes canaux avant d’envoyer des réponses. Les codes de vérification fonctionnent dès que le canal est lié.",
   "triggers.homeLink": "Accueil",
   "triggers.edit": "Modifier le déclencheur",
   "triggers.formHint":
@@ -2654,11 +2683,11 @@ const fr: Record<MessageKey, string> = {
   "triggers.replyBothReady":
     "Une correspondance répond sur l’application d’où le client a écrit.",
   "triggers.replyBothPartial":
-    "Les réponses partent sur l’application qui a reçu le message. Connectez l’autre depuis l’accueil si vous avez besoin des deux.",
+    "Les réponses partent sur l’application qui a reçu le message. Connectez l’autre depuis Mes canaux si vous avez besoin des deux.",
   "triggers.replyNeedChannel":
-    "Connectez WhatsApp ou Telegram depuis l’accueil avant qu’une réponse puisse partir.",
+    "Connectez WhatsApp ou Telegram depuis Mes canaux avant qu’une réponse puisse partir.",
   "triggers.replyNeedThis":
-    "Connectez {channel} depuis l’accueil avant que cette réponse puisse partir.",
+    "Connectez {channel} depuis Mes canaux avant que cette réponse puisse partir.",
   "triggers.whenAnyBoth": "n’importe quel message WhatsApp ou Telegram",
   "triggers.whenAnyOne": "n’importe quel message {channel}",
   "triggers.whenCode": "un code de vérification",
@@ -3022,8 +3051,8 @@ const fr: Record<MessageKey, string> = {
   "lit.developers.7": "Envoyez le code chiffré à",
   "lit.developers.8": ", depuis le numéro d’expéditeur ci-dessus.",
   "lit.developers.9": ", le bot Telegram lié à cet espace.",
-  "lit.developers.10": "Liez WhatsApp sur l’accueil avant de générer un code WhatsApp.",
-  "lit.developers.11": "Connectez Telegram sur l’accueil avant de générer un code Telegram.",
+  "lit.developers.10": "Liez WhatsApp dans Mes canaux avant de générer un code WhatsApp.",
+  "lit.developers.11": "Connectez Telegram dans Mes canaux avant de générer un code Telegram.",
   "lit.developers.12": "Générer un code chiffré",
   "lit.developers.13": "Envoyez ce code chiffré par message Telegram à",
   "lit.developers.14": ". C’est le bot lié à cet espace.",
@@ -3296,6 +3325,35 @@ const fr: Record<MessageKey, string> = {
   "auto.previewEmpty": "Votre réponse apparaîtra ici.",
   "auto.previewBoth": "Envoyée sur WhatsApp et Telegram.",
   "auto.previewOne": "Envoyée sur {channel} seulement.",
+  "chan.lede": "Connectez WhatsApp et Telegram, testez-les, ou déconnectez-les.",
+  "chan.sendTest": "Envoyer un test",
+  "chan.changeNumber": "Lier un autre numéro",
+  "chan.wa1": "Saisissez le numéro WhatsApp auquel vos clients écrivent déjà, puis enregistrez.",
+  "chan.wa2": "Sur votre téléphone, ouvrez WhatsApp → Réglages → Appareils connectés → Connecter un appareil.",
+  "chan.wa3": "Scannez le QR code affiché sur cette page, ou saisissez le code d'association.",
+  "chan.tg1": "Dans Telegram, écrivez à @BotFather et créez un bot avec /newbot.",
+  "chan.tg2": "Copiez le jeton que BotFather vous donne (il ressemble à 123456:AAH…).",
+  "chan.tg3": "Collez-le ici, puis enregistrez.",
+  "chan.showToken": "Afficher le jeton",
+  "chan.hideToken": "Masquer le jeton",
+  "chan.advanced": "Paramètres avancés",
+  "chan.gateway": "Passerelle entrante",
+  "chan.gatewayHint": "Adresse qui reçoit vos messages WhatsApp et Telegram.",
+  "chan.gatewayReady": "Prête",
+  "chan.gatewayNotReady": "Pas prête",
+  "chan.gatewayUnknown": "L'adresse de la passerelle n'est pas disponible pour le moment.",
+  "chan.saved": "Canaux enregistrés.",
+  "chan.testTitle": "Envoyer un test",
+  "chan.testBodyWhatsapp": "Depuis votre téléphone, envoyez « test » sur WhatsApp au {number}. Le message apparaîtra dans Messages en quelques secondes.",
+  "chan.testBodyTelegram": "Depuis votre téléphone, envoyez « test » sur Telegram à {bot}. Le message apparaîtra dans Messages en quelques secondes.",
+  "chan.openMessages": "Ouvrir Messages",
+  "chan.disconnectTitle": "Déconnecter {channel} ?",
+  "chan.disconnectBody": "Jokubot ne répondra plus sur ce canal. Continuer ?",
+  "chan.disconnected": "{channel} déconnecté.",
+  "settings.lede2": "Votre profil, la langue, le thème et le comportement de Jokubot.",
+  "settings.savedToast": "Réglages enregistrés.",
+  "settings.saveErrorToast": "Les réglages n'ont pas été enregistrés. Vérifiez votre connexion, puis réessayez.",
+  "chan.save": "Enregistrer",
 };
 
 const catalogs: Record<Locale, Record<MessageKey, string>> = { en, fr };
