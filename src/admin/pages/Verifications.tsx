@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { api, type CreatedVerification, type Verification, type VerificationPurpose } from "../api.js";
 import { useAuth } from "../auth.js";
 import { localeTag } from "../i18n.js";
-import { IconCopy, IconPlus, IconShieldCheck, IconTelegram, IconWhatsApp } from "../jk/icons.js";
+import { IconAlert, IconCircleCheck, IconClock, IconCopy, IconPlus, IconShieldCheck, IconTelegram, IconWhatsApp } from "../jk/icons.js";
 import {
   Badge,
   ChannelMark,
@@ -102,9 +102,9 @@ export function VerificationsPage() {
         <>
           <div className="jk-grid-4">
             <StatCard icon={IconShieldCheck} label={t("jk.ver.total")} value={counts.total} />
-            <StatCard icon={IconShieldCheck} label={t("jk.ver.pending")} value={counts.pending} />
-            <StatCard icon={IconShieldCheck} label={t("jk.ver.validPlural")} value={counts.verified} />
-            <StatCard icon={IconShieldCheck} label={t("jk.ver.expiredPlural")} value={counts.expired} />
+            <StatCard icon={IconClock} label={t("jk.ver.pending")} value={counts.pending} />
+            <StatCard icon={IconCircleCheck} label={t("jk.ver.validPlural")} value={counts.verified} />
+            <StatCard icon={IconAlert} label={t("jk.ver.expiredPlural")} value={counts.expired} />
           </div>
 
           {items.length === 0 ? (

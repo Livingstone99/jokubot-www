@@ -116,12 +116,14 @@ export function StatCard({
 }) {
   return (
     <div className="jk-stat">
-      <span className="jk-stat-icon">
-        <Icon size={18} />
+      <span className="jk-stat-icon" aria-hidden="true">
+        <Icon size={22} />
       </span>
-      <span className="jk-stat-label">{label}</span>
-      <strong className="jk-stat-value">{value}</strong>
-      {hint ? <span className="jk-stat-hint">{hint}</span> : null}
+      <span className="jk-stat-text">
+        <strong className="jk-stat-value">{value}</strong>
+        <span className="jk-stat-label">{label}</span>
+        {hint ? <span className="jk-stat-hint">{hint}</span> : null}
+      </span>
     </div>
   );
 }
