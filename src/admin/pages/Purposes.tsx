@@ -252,7 +252,7 @@ Authorization: Bearer <api key>`}</pre>
                           </button>
                           <button
                             type="button"
-                            className="ghost compact danger-text"
+                            className="ghost compact"
                             onClick={() => {
                               setPendingDelete(item.id);
                               setEditingId(null);

@@ -18,8 +18,6 @@ import {
 import { useT } from "../locale.js";
 import { EmptyState, formatWhen } from "../ui.js";
 
-type Translate = ReturnType<typeof useT>;
-
 type Draft = {
   name: string;
   kind: ReactionKind;
@@ -55,16 +53,14 @@ type Draft = {
 const MAX_HTTP_BINDINGS = 12;
 const MAX_HTTP_REQUEST_PARAMS = 8;
 
-function chatValueOptions(t: Translate): Array<{ value: HttpChatValue; label: string }> {
-  return [
-  { value: "name", label: t("triggers.senderName") },
-  { value: "number", label: t("ui.phoneNumber") },
-  { value: "text", label: t("reactions.chat.text") },
-  { value: "channel", label: t("common.channel") },
-  { value: "sender", label: t("reactions.chat.sender") },
-  { value: "timestamp", label: t("reactions.chat.timestamp") },
+const CHAT_VALUE_OPTIONS: Array<{ value: HttpChatValue; label: string }> = [
+  { value: "name", label: "Sender name" },
+  { value: "number", label: "Phone number" },
+  { value: "text", label: "Message text" },
+  { value: "channel", label: "Channel" },
+  { value: "sender", label: "Sender id" },
+  { value: "timestamp", label: "Received at" },
 ];
-}
 
 const FALLBACK_CATALOG: LlmCatalog = {
   defaultProvider: "jokubot",
@@ -132,16 +128,16 @@ const FALLBACK_CATALOG: LlmCatalog = {
   },
 };
 
-const emptyDraft = (t: Translate): Draft => ({
-  name: t("reactions.namePlaceholder"),
+const emptyDraft = (): Draft => ({
+  name: "Customer support",
   kind: "agent",
-  fallback: t("reactions.fallbackPlaceholder"),
+  fallback: "Thanks, we received your message.",
   url: "",
   timeoutMs: 2000,
   requestParams: [],
   responseExample: "",
   bindings: [],
-  body: t("triggers.textPlaceholder"),
+  body: "Hi {{name}}, we received your message.",
   rules: [],
   provider: "jokubot",
   model: "jokubot",
@@ -274,7 +270,7 @@ export function ReactionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<Reaction[] | null>(null);
   const [catalog, setCatalog] = useState<LlmCatalog>(FALLBACK_CATALOG);
-  const [draft, setDraft] = useState<Draft>(() => emptyDraft(t));
+  const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -296,7 +292,7 @@ export function ReactionsPage() {
 
   useEffect(() => {
     void refresh().catch((err: unknown) => {
-      setError(err instanceof Error ? err.message : t("reactions.loadError"));
+      setError(err instanceof Error ? err.message : "Could not load reactions.");
     });
   }, []);
 
@@ -304,7 +300,7 @@ export function ReactionsPage() {
     lastFocus.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditingId(null);
-    setDraft(emptyDraft(t));
+    setDraft(emptyDraft());
     setOpen(true);
     setConfirmDeleteId(null);
     setError(null);
@@ -381,7 +377,7 @@ export function ReactionsPage() {
       closeForm();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("reactions.saveError"));
+      setError(err instanceof Error ? err.message : "Could not save reaction.");
     } finally {
       setBusy(false);
     }
@@ -397,7 +393,7 @@ export function ReactionsPage() {
       setConfirmDeleteId(null);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("reactions.deleteError"));
+      setError(err instanceof Error ? err.message : "Could not delete reaction.");
     }
   }
 
@@ -405,15 +401,17 @@ export function ReactionsPage() {
     <section className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">{t("nav.reactions")}</p>
-          <h1>{t("reactions.title")}</h1>
+          <p className="eyebrow">Reactions</p>
+          <h1>How a reply is produced</h1>
           <p className="lede">
-            {t("lit.reactions.32")}
+            A formula matches the inbound text. An HTTP request reads JSON from a
+            URL. A chat agent replies from a model. A reply trigger can use one
+            of these instead of a static message.
           </p>
         </div>
         <div className="page-actions">
           <button type="button" className="primary" onClick={startCreate}>
-            {t("reactions.new")}
+            New reaction
           </button>
         </div>
       </header>
@@ -437,10 +435,10 @@ export function ReactionsPage() {
             <header className="panel-head">
               <div>
                 <h2 id="reaction-form-title">
-                  {editingId ? t("reactions.edit") : t("reactions.new")}
+                  {editingId ? "Edit reaction" : "New reaction"}
                 </h2>
                 <p className="hint">
-                  {t("reactions.formHint")}
+                  Attach this from a trigger whose action is Send a reply.
                 </p>
               </div>
             </header>
@@ -452,18 +450,18 @@ export function ReactionsPage() {
               ) : null}
               <div className="row">
                 <label>
-                  {t("common.name")}
+                  Name
                   <input
                     value={draft.name}
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, name: event.target.value }))
                     }
-                    placeholder={t("reactions.namePlaceholder")}
+                    placeholder="Customer support"
                     required
                   />
                 </label>
                 <label>
-                  {t("reactions.type")}
+                  Type
                   <select
                     value={draft.kind}
                     onChange={(event) =>
@@ -472,9 +470,9 @@ export function ReactionsPage() {
                       )
                     }
                   >
-                    <option value="agent">{t("reactions.kindAgent")}</option>
-                    <option value="formula">{t("reactions.kindFormula")}</option>
-                    <option value="http">{t("reactions.kindHttp")}</option>
+                    <option value="agent">Chat agent</option>
+                    <option value="formula">Formula</option>
+                    <option value="http">HTTP request</option>
                   </select>
                 </label>
               </div>
@@ -489,26 +487,26 @@ export function ReactionsPage() {
                 />
               ) : (
                 <section className="trigger-section">
-                  <h3>{t("reactions.kindFormula")}</h3>
+                  <h3>Formula</h3>
                   <label>
-                    {t("reactions.defaultMessage")}
+                    Default message
                     <textarea
                       value={draft.body}
                       onChange={(event) =>
                         setDraft((current) => ({ ...current, body: event.target.value }))
                       }
-                      placeholder={t("triggers.textPlaceholder")}
+                      placeholder="Hi {{name}}, we received your message."
                     />
                     <span className="hint">
-                      {t("lit.reactions.33")}{' '}{"{{name}}"}, {"{{text}}"}{t("lit.reactions.34")}{" "}
-                      {"{{channel}}"}{' '}{t("lit.reactions.35")}
+                      Used when no rule matches. {"{{name}}"}, {"{{text}}"}, and{" "}
+                      {"{{channel}}"} are replaced.
                     </span>
                   </label>
                   <div className="reaction-rules">
                     {draft.rules.map((rule, index) => (
                       <div key={index} className="reaction-rule">
                         <label>
-                          {t("reactions.whenMessage")}
+                          When the message
                           <select
                             value={rule.match}
                             onChange={(event) =>
@@ -525,12 +523,12 @@ export function ReactionsPage() {
                               }))
                             }
                           >
-                            <option value="contains">{t("reactions.contains")}</option>
-                            <option value="equals">{t("reactions.equals")}</option>
+                            <option value="contains">contains</option>
+                            <option value="equals">equals</option>
                           </select>
                         </label>
                         <label>
-                          {t("reactions.value")}
+                          Value
                           <input
                             value={rule.value}
                             onChange={(event) =>
@@ -547,7 +545,7 @@ export function ReactionsPage() {
                           />
                         </label>
                         <label>
-                          {t("verify.send")}
+                          Send
                           <input
                             value={rule.body}
                             onChange={(event) =>
@@ -560,7 +558,7 @@ export function ReactionsPage() {
                                 ),
                               }))
                             }
-                            placeholder={t("lit.reactions.36")}
+                            placeholder="Open 9–17."
                           />
                         </label>
                         <button
@@ -573,7 +571,7 @@ export function ReactionsPage() {
                             }))
                           }
                         >
-                          {t("reactions.remove")}
+                          Remove
                         </button>
                       </div>
                     ))}
@@ -591,7 +589,7 @@ export function ReactionsPage() {
                           }))
                         }
                       >
-                        {t("reactions.addRule")}
+                        Add rule
                       </button>
                     ) : null}
                   </div>
@@ -599,30 +597,30 @@ export function ReactionsPage() {
               )}
 
               <label>
-                {t("reactions.fallback")}
+                Fallback
                 <textarea
                   value={draft.fallback}
                   onChange={(event) =>
                     setDraft((current) => ({ ...current, fallback: event.target.value }))
                   }
-                  placeholder={t("reactions.fallbackPlaceholder")}
+                  placeholder="Thanks, we received your message."
                   required
                 />
                 <span className="hint">
                   {draft.kind === "http"
-                    ? t("reactions.fallbackHttp")
+                    ? "Sent when a JSON variable is missing, or the request fails, times out, or is over capacity."
                     : draft.kind === "agent"
-                      ? t("reactions.fallbackAgent")
-                      : t("reactions.fallbackFormula")}
+                      ? "Sent when the model returns nothing, times out, or the request fails."
+                      : "Sent when the formula has no text."}
                 </span>
               </label>
             </div>
             <div className="trigger-actions overlay-card-foot">
               <button type="submit" className="primary" disabled={busy}>
-                {busy ? "Saving…" : editingId ? t("reactions.save") : t("reactions.create")}
+                {busy ? "Saving…" : editingId ? "Save reaction" : "Create reaction"}
               </button>
               <button type="button" className="secondary" onClick={closeForm}>
-                {t("common.cancel")}
+                Cancel
               </button>
             </div>
           </form>
@@ -632,9 +630,9 @@ export function ReactionsPage() {
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>{t("reactions.savedTitle")}</h2>
+            <h2>Saved reactions</h2>
             <p className="hint">
-              {t("reactions.savedHint")}
+              Editing a reaction changes every trigger that uses it.
             </p>
           </div>
         </header>
@@ -642,11 +640,11 @@ export function ReactionsPage() {
           <div className="skeleton-table" aria-hidden="true" />
         ) : items.length === 0 ? (
           <EmptyState
-            title={t("reactions.emptyTitle")}
-            body={t("reactions.emptyBody")}
+            title="No reactions yet"
+            body="Create a formula, HTTP request, or chat agent, then pick it on a reply trigger."
             action={
               <button type="button" className="primary compact" onClick={startCreate}>
-                {t("reactions.new")}
+                New reaction
               </button>
             }
           />
@@ -657,10 +655,10 @@ export function ReactionsPage() {
                 <div className="trigger-card-top reaction-card-top">
                   <div className="trigger-card-copy">
                     <strong>{item.name}</strong>
-                    <p className="trigger-summary">{summarize(item, t)}</p>
+                    <p className="trigger-summary">{summarize(item)}</p>
                     <p className="trigger-hits">
-                      {usedByLabel(item, t)}
-                      {item.updatedAt ? t("reactions.updated", { when: formatWhen(item.updatedAt) }) : ""}
+                      {usedByLabel(item)}
+                      {item.updatedAt ? ` · updated ${formatWhen(item.updatedAt)}` : ""}
                     </p>
                   </div>
                   <div className="trigger-actions">
@@ -676,7 +674,7 @@ export function ReactionsPage() {
                       className="secondary compact"
                       onClick={() => startEdit(item)}
                     >
-                      {t("common.edit")}
+                      Edit
                     </button>
                     {confirmDeleteId === item.id ? (
                       <>
@@ -685,14 +683,14 @@ export function ReactionsPage() {
                           className="ghost"
                           onClick={() => setConfirmDeleteId(null)}
                         >
-                          {t("common.cancel")}
+                          Cancel
                         </button>
                         <button
                           type="button"
                           className="primary compact"
                           onClick={() => void onDelete(item)}
                         >
-                          {t("common.delete")}
+                          Delete
                         </button>
                       </>
                     ) : (
@@ -701,7 +699,7 @@ export function ReactionsPage() {
                         className="secondary compact"
                         onClick={() => setConfirmDeleteId(item.id)}
                       >
-                        {t("common.delete")}
+                        Delete
                       </button>
                     )}
                   </div>
@@ -723,7 +721,8 @@ export function ReactionsPage() {
       </article>
 
       <p className="hint">
-        {t("lit.reactions.37")}{' '}<Link to="/triggers">{t("nav.triggers")}</Link>{' '}{t("lit.reactions.38")}
+        Attach a reaction from <Link to="/triggers">Triggers</Link> when the
+        action is Send a reply.
       </p>
     </section>
   );
@@ -758,7 +757,6 @@ function AgentReactionFields({
   catalog: LlmCatalog;
   onChange: (update: Draft | ((current: Draft) => Draft)) => void;
 }) {
-  const t = useT();
   const provider =
     catalog.providers.find((row) => row.id === draft.provider) ??
     catalog.providers[0];
@@ -783,10 +781,10 @@ function AgentReactionFields({
   return (
     <>
     <section className="trigger-section">
-      <h3>{t("reactions.kindAgent")}</h3>
+      <h3>Chat agent</h3>
       <div className="row">
         <label>
-          {t("reactions.provider")}
+          Provider
           <select
             value={draft.provider}
             onChange={(event) => setProvider(event.target.value as LlmProvider)}
@@ -800,7 +798,7 @@ function AgentReactionFields({
         </label>
         {isJokubot ? null : (
           <label>
-            {t("reactions.model")}
+            Model
             {customModel ? (
               <input
                 value={draft.model}
@@ -840,12 +838,12 @@ function AgentReactionFields({
       {isJokubot ? (
         <p className="hint">
           {catalog.systemJokubot
-            ? t("reactions.jokubotReady")
-            : t("reactions.jokubotMissing")}
+            ? "Platform bot. No key needed."
+            : "jokubot is not configured on this server. Choose another provider and paste a key."}
         </p>
       ) : (
         <label>
-          {t("docs.authKey")}
+          API key
           <input
             type="password"
             autoComplete="off"
@@ -856,24 +854,24 @@ function AgentReactionFields({
             }
             placeholder={
               draft.hasApiKey
-                ? t("reactions.keyStored")
+                ? "Key stored. Leave blank to keep it."
                 : usesSystemKey
-                  ? t("reactions.keyPlatform")
-                  : t("reactions.keyPaste")
+                  ? "Leave blank to use the platform DeepSeek key."
+                  : "Paste the provider key"
             }
             required={!usesSystemKey && !draft.hasApiKey}
           />
           <span className="hint">
             {usesSystemKey
-              ? t("reactions.keyDeepseek")
+              ? "DeepSeek uses the platform key unless you paste your own."
               : draft.hasApiKey
-                ? t("reactions.keyReplace")
-                : t("reactions.keyOnce")}
+                ? "A key is stored. Paste a new one only to replace it."
+                : "Stored on this reaction and never shown again."}
           </span>
         </label>
       )}
       <label>
-        {t("reactions.tokenLimit")}
+        Token limit
         <input
           type="number"
           min={64}
@@ -889,11 +887,12 @@ function AgentReactionFields({
           required
         />
         <span className="hint">
-          {t("reactions.tokenHint")}
+          Caps how long the model can write. The sent reply is still limited to
+          1000 characters.
         </span>
       </label>
       <label>
-        {t("reactions.context")}
+        Context
         <textarea
           className="reaction-context"
           value={draft.context}
@@ -901,13 +900,13 @@ function AgentReactionFields({
             onChange((current) => ({ ...current, context: event.target.value }))
           }
           placeholder={
-            t("reactions.contextPlaceholder")
+            "You reply to inbound customer messages for this business.\n\nKeep answers short and specific."
           }
           required
         />
         <span className="hint">
-          {t("lit.reactions.39")}{' '}{"{{name}}"}, {"{{text}}"}{t("lit.reactions.34")}{" "}
-          {"{{channel}}"}{' '}{t("lit.reactions.40")}
+          Markdown instructions for the model. {"{{name}}"}, {"{{text}}"}, and{" "}
+          {"{{channel}}"} are replaced. A trigger test calls this model.
         </span>
       </label>
     </section>
@@ -925,13 +924,12 @@ function MediaReactionFields({
   catalog: LlmCatalog;
   onChange: (update: Draft | ((current: Draft) => Draft)) => void;
 }) {
-  const t = useT();
   const media = catalog.media ?? FALLBACK_CATALOG.media;
   return (
     <section className="trigger-section">
-      <h3>{t("reactions.media")}</h3>
+      <h3>Photos, voice, and files</h3>
       <label>
-        {t("reactions.replyAs")}
+        Reply as
         <select
           value={draft.replyAs}
           onChange={(event) =>
@@ -941,15 +939,16 @@ function MediaReactionFields({
             }))
           }
         >
-          <option value="text">{t("reactions.replyAsText")}</option>
-          <option value="voice">{t("triggers.listenAudio")}</option>
+          <option value="text">Text message</option>
+          <option value="voice">Voice note</option>
         </select>
         <span className="hint">
-          {t("reactions.mediaHint")}
+          Photos and files are sent to the model when it can read them. Voice
+          notes are transcribed first. Voice replies use the selected voice.
         </span>
       </label>
       <MediaJobFields
-        label={t("reactions.vision")}
+        label="Vision"
         job={media.vision}
         provider={draft.visionProvider}
         model={draft.visionModel}
@@ -973,7 +972,7 @@ function MediaReactionFields({
         }
       />
       <MediaJobFields
-        label={t("usage.job.stt")}
+        label="Speech to text"
         job={media.stt}
         provider={draft.sttProvider}
         model={draft.sttModel}
@@ -997,7 +996,7 @@ function MediaReactionFields({
         }
       />
       <MediaJobFields
-        label={t("reactions.tts")}
+        label="Voice"
         job={media.tts}
         provider={draft.ttsProvider}
         model={draft.ttsModel}
@@ -1045,7 +1044,6 @@ function MediaJobFields({
   onModel: (value: string) => void;
   onKey: (value: string) => void;
 }) {
-  const t = useT();
   const found = job.providers.find((row) => row.id === provider) ?? job.providers[0];
   const models = found?.models ?? [];
   const isJokubot = provider === "jokubot";
@@ -1096,12 +1094,12 @@ function MediaJobFields({
       {isJokubot ? (
         <p className="hint">
           {job.systemReady
-            ? t("reactions.mediaReady")
-            : t("reactions.mediaMissing")}
+            ? "Platform default. No key needed."
+            : "Not configured on this server. Choose another provider and paste a key."}
         </p>
       ) : (
         <label>
-          {t("docs.authKey")}
+          API key
           <input
             type="password"
             autoComplete="off"
@@ -1110,8 +1108,8 @@ function MediaJobFields({
             onChange={(event) => onKey(event.target.value)}
             placeholder={
               hasApiKey
-                ? t("reactions.keyStored")
-                : t("reactions.keyPaste")
+                ? "Key stored. Leave blank to keep it."
+                : "Paste the provider key"
             }
           />
         </label>
@@ -1127,7 +1125,6 @@ function HttpReactionFields({
   draft: Draft;
   onChange: (update: Draft | ((current: Draft) => Draft)) => void;
 }) {
-  const t = useT();
   const parsed = useMemo(
     () => parseExample(draft.responseExample),
     [draft.responseExample],
@@ -1163,7 +1160,7 @@ function HttpReactionFields({
   return (
     <>
       <section className="trigger-section">
-        <h3>{t("docs.request")}</h3>
+        <h3>Request</h3>
         <label>
           URL
           <input
@@ -1175,11 +1172,13 @@ function HttpReactionFields({
             required
           />
           <span className="hint">
-            {t("reactions.urlHint")}
+            POST to this URL. Query keys below are appended. If a webhook secret
+            is stored, the body is signed the same way as the completion
+            webhook.
           </span>
         </label>
         <label>
-          {t("reactions.timeout")}
+          Timeout
           <select
             value={String(draft.timeoutMs)}
             onChange={(event) =>
@@ -1189,18 +1188,18 @@ function HttpReactionFields({
               }))
             }
           >
-            <option value="1000">{t("reactions.sec1")}</option>
-            <option value="2000">{t("reactions.sec2")}</option>
+            <option value="1000">1 second</option>
+            <option value="2000">2 seconds</option>
           </select>
         </label>
         <div className="reaction-rules">
           <p className="hint">
-            {t("reactions.paramsHint")}
+            Pass values from this chat as a URL query key or a JSON body key.
           </p>
           {draft.requestParams.map((row, index) => (
             <div key={index} className="reaction-param">
               <label>
-                {t("reactions.key")}
+                Key
                 <input
                   value={row.key}
                   onChange={(event) =>
@@ -1210,7 +1209,7 @@ function HttpReactionFields({
                 />
               </label>
               <label>
-                {t("reactions.fromChat")}
+                From chat
                 <select
                   value={row.from}
                   onChange={(event) =>
@@ -1219,7 +1218,7 @@ function HttpReactionFields({
                     })
                   }
                 >
-                  {chatValueOptions(t).map((option) => (
+                  {CHAT_VALUE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -1227,7 +1226,7 @@ function HttpReactionFields({
                 </select>
               </label>
               <label>
-                {t("reactions.putIn")}
+                Put in
                 <select
                   value={row.in}
                   onChange={(event) =>
@@ -1236,8 +1235,8 @@ function HttpReactionFields({
                     })
                   }
                 >
-                  <option value="query">{t("reactions.query")}</option>
-                  <option value="body">{t("reactions.body")}</option>
+                  <option value="query">URL query</option>
+                  <option value="body">JSON body</option>
                 </select>
               </label>
               <button
@@ -1252,7 +1251,7 @@ function HttpReactionFields({
                   }))
                 }
               >
-                {t("reactions.remove")}
+                Remove
               </button>
             </div>
           ))}
@@ -1270,22 +1269,22 @@ function HttpReactionFields({
                 }))
               }
             >
-              {t("reactions.addParam")}
+              Add param
             </button>
           ) : null}
         </div>
         {requestPreview ? (
           <div className="reaction-request-preview">
-            <p className="hint">{t("reactions.requestPreview")}</p>
+            <p className="hint">This chat would send:</p>
             <pre className="reaction-code">{requestPreview}</pre>
           </div>
         ) : null}
       </section>
 
       <section className="trigger-section">
-        <h3>{t("reactions.jsonExpect")}</h3>
+        <h3>JSON to expect</h3>
         <label>
-          {t("reactions.bodyLabel")}
+          Body
           <textarea
             className="reaction-json"
             value={draft.responseExample}
@@ -1299,15 +1298,17 @@ function HttpReactionFields({
             spellCheck={false}
           />
           <span className="hint">
-            {exampleHint(draft.responseExample, parsed, t)}
+            {exampleHint(draft.responseExample, parsed)}
           </span>
         </label>
       </section>
 
       <section className="trigger-section">
-        <h3>{t("reactions.variables")}</h3>
+        <h3>Variables</h3>
         <p className="hint">
-          {t("reactions.variablesHint")}
+          Name a value for the reply, then point it at a field in the JSON
+          above. Nested fields use dots, such as store.open. Missing values
+          send the fallback.
         </p>
         <div className="reaction-rules">
           {draft.bindings.map((row, index) => {
@@ -1318,7 +1319,7 @@ function HttpReactionFields({
             return (
             <div key={index} className="reaction-bind">
               <label className="reaction-bind-name">
-                <span>{t("reactions.variable")}</span>
+                <span>Variable</span>
                 <input
                   value={row.name}
                   onChange={(event) =>
@@ -1328,7 +1329,7 @@ function HttpReactionFields({
                 />
               </label>
               <label className="reaction-bind-path">
-                <span>{t("reactions.fromJson")}</span>
+                <span>From JSON</span>
                 <input
                   value={row.path}
                   list="reaction-json-paths"
@@ -1342,11 +1343,11 @@ function HttpReactionFields({
                     ? sample !== null
                       ? sample
                       : parsed.ok
-                        ? t("reactions.notInJson")
-                        : t("reactions.dottedPath")
+                        ? "Not in this JSON."
+                        : "Dotted path into the body."
                     : jsonPaths.length > 0
-                      ? t("reactions.pickField")
-                      : t("reactions.dottedExample")}
+                      ? "Pick a field or type a dotted path."
+                      : "Dotted path into the body, such as store.open."}
                 </span>
               </label>
               <button
@@ -1361,7 +1362,7 @@ function HttpReactionFields({
                   }))
                 }
               >
-                {t("reactions.remove")}
+                Remove
               </button>
             </div>
             );
@@ -1377,7 +1378,7 @@ function HttpReactionFields({
                 }))
               }
             >
-              {t("reactions.addVariable")}
+              Add variable
             </button>
           ) : null}
         </div>
@@ -1391,28 +1392,28 @@ function HttpReactionFields({
       </section>
 
       <section className="trigger-section">
-        <h3>{t("sessions.reply")}</h3>
+        <h3>Reply</h3>
         <label>
-          {t("triggers.message")}
+          Message
           <textarea
             value={draft.body}
             onChange={(event) =>
               onChange((current) => ({ ...current, body: event.target.value }))
             }
-            placeholder={t("reactions.replyPlaceholder")}
+            placeholder="Hi {{name}}, we are open {{hours}}–{{close}}."
             required
           />
           <span className="hint">
-            {t("lit.reactions.41")}{' '}{"{{name}}"}, {"{{number}}"}, {"{{text}}"},{" "}
+            From this chat: {"{{name}}"}, {"{{number}}"}, {"{{text}}"},{" "}
             {"{{channel}}"}, {"{{timestamp}}"}.
             {definedVars.length > 0
-              ? ` ${t("lit.reactions.fromJsonVars", { vars: definedVars.map((name) => `{{${name}}}`).join(", ") })}`
-              : t("reactions.replyHintAdd")}
+              ? ` From the JSON: ${definedVars.map((name) => `{{${name}}}`).join(", ")}.`
+              : " Add variables above to insert JSON values."}
           </span>
         </label>
         {preview ? (
           <div className="reaction-reply-preview">
-            <p className="hint">{t("reactions.replyPreview")}</p>
+            <p className="hint">With the JSON above, this reply reads:</p>
             <div className="session-bubble is-out">
               <p>{preview}</p>
             </div>
@@ -1423,18 +1424,18 @@ function HttpReactionFields({
   );
 }
 
-function summarize(reaction: Reaction, t: Translate): string {
+function summarize(reaction: Reaction): string {
   if (reaction.kind === "agent") {
     const provider = reaction.config.provider ?? "jokubot";
     if (provider === "jokubot") {
-      return t("reactions.summaryAgentJokubot");
+      return "Chat agent · jokubot";
     }
     const model = reaction.config.model ?? "deepseek-flash";
     const key =
       reaction.config.hasApiKey || provider !== "deepseek"
-        ? t("reactions.ownKey")
-        : t("reactions.platformKey");
-    return t("reactions.summaryAgent", { provider: providerLabel(provider), model, key });
+        ? "own key"
+        : "platform key";
+    return `Chat agent · ${providerLabel(provider)} · ${model} · ${key}`;
   }
   if (reaction.kind === "http") {
     const host = hostOf(reaction.config.url);
@@ -1446,21 +1447,21 @@ function summarize(reaction: Reaction, t: Translate): string {
     const params = reaction.config.requestParams?.length ?? 0;
     const bits: string[] = ["HTTP"];
     if (params > 0) {
-      bits.push(params === 1 ? t("reactions.paramOne") : t("reactions.paramMany", { count: params }));
+      bits.push(`${params} param${params === 1 ? "" : "s"}`);
     }
     if (fields > 0) {
-      bits.push(fields === 1 ? t("reactions.varOne") : t("reactions.varMany", { count: fields }));
+      bits.push(`${fields} variable${fields === 1 ? "" : "s"}`);
     }
     if (host) {
-      bits.push(fields > 0 ? t("reactions.fromHost", { host }) : t("reactions.toHost", { host }));
+      bits.push(fields > 0 ? `from ${host}` : `to ${host}`);
     }
     return bits.join(" · ");
   }
   const rules = reaction.config.rules?.length ?? 0;
   if (rules === 0) {
-    return t("reactions.formulaDefault");
+    return "Formula · default message";
   }
-  return rules === 1 ? t("reactions.formulaRuleOne") : t("reactions.formulaRules", { count: rules });
+  return `Formula · ${rules} rule${rules === 1 ? "" : "s"}`;
 }
 
 function providerLabel(provider: LlmProvider): string {
@@ -1482,13 +1483,13 @@ function providerLabel(provider: LlmProvider): string {
   }
 }
 
-function usedByLabel(reaction: Reaction, t: Translate): string {
+function usedByLabel(reaction: Reaction): string {
   if (!reaction.usedBy) {
-    return t("reactions.unused");
+    return "Not used by a trigger";
   }
   return reaction.usedBy === 1
-    ? t("reactions.usedOne")
-    : t("reactions.usedMany", { count: reaction.usedBy });
+    ? "Used by 1 trigger"
+    : `Used by ${reaction.usedBy} triggers`;
 }
 
 function hostOf(url: string | undefined): string | null {
@@ -1519,19 +1520,17 @@ function parseExample(raw: string): ParsedExample {
   }
 }
 
-function exampleHint(raw: string, parsed: ParsedExample, t: Translate): string {
+function exampleHint(raw: string, parsed: ParsedExample): string {
   if (!raw.trim()) {
-    return t("reactions.jsonEmpty");
+    return "Paste the JSON this URL returns. Nested fields are fine; point variables at them with dots, such as store.open.";
   }
   if (!parsed.ok) {
-    return t("reactions.jsonInvalid");
+    return "This is not valid JSON yet.";
   }
   if (parsed.paths.length === 0) {
-    return t("reactions.jsonNoScalar");
+    return "No scalar fields found. Type a dotted path on the variable, such as store.open or slots.0.start.";
   }
-  return parsed.paths.length === 1
-    ? t("reactions.jsonFieldOne")
-    : t("reactions.jsonFields", { count: parsed.paths.length });
+  return `${parsed.paths.length} field${parsed.paths.length === 1 ? "" : "s"} in this body, including nested ones. Point variables at them below.`;
 }
 
 function leafPaths(value: unknown, prefix = ""): string[] {

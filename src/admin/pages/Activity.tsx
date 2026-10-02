@@ -8,10 +8,8 @@ import {
   OutcomePill,
   formatWhen,
 } from "../ui.js";
-import { useT } from "../locale.js";
 
 export function ActivityPage() {
-  const t = useT();
   const [items, setItems] = useState<InboundRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +18,7 @@ export function ActivityPage() {
       .inbound()
       .then((result) => setItems(result.items))
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : t("activity.loadError"));
+        setError(err instanceof Error ? err.message : "Could not load activity.");
       });
   }, []);
 
@@ -28,10 +26,12 @@ export function ActivityPage() {
     <section className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">{t("nav.activity")}</p>
-          <h1>{t("activity.title")}</h1>
+          <p className="eyebrow">Activity</p>
+          <h1>Inbound messages</h1>
           <p className="lede">
-            {t("activity.lede")}
+            Every message the gateway forwarded. Deduped by provider id, so a
+            retry cannot burn a second session. Trigger matches show as
+            Triggered.
           </p>
         </div>
       </header>
@@ -46,20 +46,20 @@ export function ActivityPage() {
           <div className="skeleton-table" aria-hidden="true" />
         ) : items.length === 0 ? (
           <EmptyState
-            title={t("activity.emptyTitle")}
-            body={t("activity.emptyBody")}
+            title="Nothing inbound yet"
+            body="When a user sends a code or a trigger matches, it appears here with the outcome."
           />
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>{t("overview.colReceived")}</th>
-                  <th>{t("common.channel")}</th>
-                  <th>{t("overview.colSender")}</th>
-                  <th>{t("activity.colTrigger")}</th>
-                  <th>{t("activity.colSession")}</th>
-                  <th>{t("overview.colOutcome")}</th>
+                  <th>Received</th>
+                  <th>Channel</th>
+                  <th>Sender</th>
+                  <th>Trigger</th>
+                  <th>Session</th>
+                  <th>Outcome</th>
                 </tr>
               </thead>
               <tbody>

@@ -1,32 +1,22 @@
-import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider, useAuth } from "./auth.js";
 import { AppShell } from "./layout/AppShell.js";
-import { MorePage } from "./layout/Navigation.js";
 import { ActivityPage } from "./pages/Activity.js";
 import { DevelopersPage } from "./pages/Developers.js";
 import { LoginPage } from "./pages/Login.js";
 import { OverviewPage } from "./pages/Overview.js";
 import { PurposesPage } from "./pages/Purposes.js";
 import { ReactionsPage } from "./pages/Reactions.js";
-import { MessagesPage } from "./pages/Messages.js";
-import { AutomationsLayout, RuleFormPage, RulesPage } from "./pages/Automations.js";
+import { SessionsPage } from "./pages/Sessions.js";
 import { SettingsPage } from "./pages/Settings.js";
 import { SetupPage } from "./pages/Setup.js";
 import { SignupPage } from "./pages/Signup.js";
 import { TriggersPage } from "./pages/Triggers.js";
-import { UsageOverviewPage } from "./pages/UsageOverview.js";
+import { UsagePage } from "./pages/Usage.js";
 import { VerifyPage } from "./pages/Verify.js";
 import { LocaleProvider, useT } from "./locale.js";
 import { ThemeProvider } from "./theme.js";
-
-/** Redirige en gardant les paramètres d'adresse (:channel, :sender) et la requête (?new=1). */
-function Redirect({ to }: { to: string }) {
-  const params = useParams();
-  const { search } = useLocation();
-  const path = to.replace(/:([a-z]+)/gi, (_, name: string) => encodeURIComponent(params[name] ?? ""));
-  return <Navigate to={`${path}${search}`} replace />;
-}
 
 function Boot() {
   const t = useT();
@@ -85,31 +75,17 @@ export function App() {
               }
             >
               <Route path="overview" element={<OverviewPage />} />
-              <Route path="messages" element={<MessagesPage />} />
-              <Route path="messages/:channel/:sender" element={<MessagesPage />} />
-              <Route path="automations" element={<AutomationsLayout />}>
-                <Route index element={<RulesPage />} />
-                <Route path="new" element={<RuleFormPage />} />
-                <Route path="rule/:id" element={<RuleFormPage />} />
-                <Route path="assistant" element={<SetupPage />} />
-                <Route path="reactions" element={<ReactionsPage />} />
-                <Route path="editor" element={<TriggersPage />} />
-              </Route>
-              <Route path="channels" element={<SettingsPage view="channels" />} />
-              <Route path="usage" element={<UsageOverviewPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="more" element={<MorePage />} />
+              <Route path="sessions" element={<SessionsPage />} />
+              <Route path="sessions/:channel/:sender" element={<SessionsPage />} />
               <Route path="verify" element={<VerifyPage />} />
               <Route path="purposes" element={<PurposesPage />} />
+              <Route path="setup" element={<SetupPage />} />
+              <Route path="triggers" element={<TriggersPage />} />
+              <Route path="reactions" element={<ReactionsPage />} />
+              <Route path="activity" element={<ActivityPage />} />
+              <Route path="usage" element={<UsagePage />} />
+              <Route path="settings" element={<SettingsPage />} />
               <Route path="developers" element={<DevelopersPage />} />
-              <Route path="journal" element={<ActivityPage />} />
-              {/* Anciennes adresses : redirigées vers la nouvelle organisation. */}
-              <Route path="sessions" element={<Redirect to="/messages" />} />
-              <Route path="sessions/:channel/:sender" element={<Redirect to="/messages/:channel/:sender" />} />
-              <Route path="activity" element={<Redirect to="/messages" />} />
-              <Route path="setup" element={<Redirect to="/automations/assistant" />} />
-              <Route path="triggers" element={<Redirect to="/automations/editor" />} />
-              <Route path="reactions" element={<Redirect to="/automations/reactions" />} />
             </Route>
             <Route path="/" element={<Navigate to="/overview" replace />} />
             <Route path="*" element={<Navigate to="/overview" replace />} />

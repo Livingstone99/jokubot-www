@@ -4,12 +4,8 @@ import { api, type WhatsAppPair } from "./api.js";
 import { useAuth } from "./auth.js";
 import { WhatsAppNumberField } from "./WhatsAppNumberField.js";
 import { ConnectedMark, hasChannelSetup } from "./ui.js";
-import { useT } from "./locale.js";
-
-type Translate = ReturnType<typeof useT>;
 
 export function ChannelReadyHint() {
-  const t = useT();
   const { me } = useAuth();
   const tenant = me?.tenant;
   const whatsappOn = tenant?.whatsappStatus === "connected";
@@ -23,7 +19,7 @@ export function ChannelReadyHint() {
       {whatsappOn ? (
         <span className="channel channel-whatsapp">
           <ConnectedMark />
-          <span>{t("common.whatsapp")}</span>
+          <span>WhatsApp</span>
           {tenant.whatsappNumber ? (
             <span className="channel-ready-id">{tenant.whatsappNumber}</span>
           ) : null}
@@ -32,7 +28,7 @@ export function ChannelReadyHint() {
       {telegramOn ? (
         <span className="channel channel-telegram">
           <ConnectedMark />
-          <span>{t("common.telegram")}</span>
+          <span>Telegram</span>
           {tenant.telegramBotUsername ? (
             <span className="channel-ready-id">@{tenant.telegramBotUsername}</span>
           ) : null}
@@ -43,7 +39,6 @@ export function ChannelReadyHint() {
 }
 
 export function ChannelConnectCard() {
-  const t = useT();
   const { me, setMe } = useAuth();
   const tenant = me?.tenant;
   const whatsappReady = Boolean(tenant?.whatsappLinked);
@@ -135,7 +130,7 @@ export function ChannelConnectCard() {
     }
     const value = channel === "whatsapp" ? whatsapp.trim() : telegramToken.trim();
     const error =
-      channel === "whatsapp" ? whatsappHint(value, t) : telegramHint(value, t);
+      channel === "whatsapp" ? whatsappHint(value) : telegramHint(value);
     if (error) {
       if (channel === "whatsapp") {
         setWhatsappError(error);
@@ -163,7 +158,7 @@ export function ChannelConnectCard() {
       }
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : t("connect.saveError");
+        err instanceof Error ? err.message : "Could not save this channel.";
       if (channel === "whatsapp") {
         setWhatsappError(message);
       } else {
@@ -181,40 +176,40 @@ export function ChannelConnectCard() {
   const whatsappStatus = whatsappReady
     ? "Connected"
     : pair?.status === "waiting"
-      ? t("channel.linkPhone")
+      ? "Link your phone"
       : pair?.status === "error"
-        ? t("connect.linkFailed")
+        ? "Link failed"
         : tenant.whatsappNumber
-          ? t("settings.numberSaved")
-          : t("common.notConnected");
+          ? "Number saved — not linked"
+          : "Not connected";
   const pairingWhileReady = canVerify && pairingActive;
 
   return (
     <article className="connect-card">
       <header className="connect-head">
         <div>
-          <p className="eyebrow">{t("settings.channels")}</p>
-          <h2>{pairingWhileReady ? t("connect.linkWhatsapp") : t("connect.connectTitle")}</h2>
+          <p className="eyebrow">Channels</p>
+          <h2>{pairingWhileReady ? "Link WhatsApp" : "Connect WhatsApp or Telegram"}</h2>
           <p className="lede">
             {pairingWhileReady
-              ? t("connect.ledePairing")
-              : t("connect.ledeSetup")}
+              ? "Scan the QR or enter the pairing code on your phone. Telegram is already receiving codes."
+              : "Connect one channel to issue codes. The customer sends the code from that app. You do not reply to complete the check."}
           </p>
         </div>
         {pairingWhileReady ? null : (
-          <p className="connect-progress">{t("connect.nothingYet")}</p>
+          <p className="connect-progress">Nothing connected yet</p>
         )}
       </header>
 
       {canVerify ? null : (
-        <ol className="connect-steps" aria-label={t("connect.stepsAria")}>
+        <ol className="connect-steps" aria-label="Setup steps">
           <li className="is-current">
             <span aria-hidden="true">1</span>
-            {t("verify.step1Title")}
+            Connect a channel
           </li>
           <li>
             <span aria-hidden="true">2</span>
-            {t("connect.step2")}
+            Start verifying
           </li>
         </ol>
       )}
@@ -230,14 +225,15 @@ export function ChannelConnectCard() {
                 <WhatsAppIcon />
               </span>
               <div>
-                <strong>{t("common.whatsapp")}</strong>
+                <strong>WhatsApp</strong>
                 <span className="connect-status">{whatsappStatus}</span>
               </div>
             </div>
             <div className="connect-tile-split">
               <div className="connect-tile-main">
                 <p>
-                  {t("connect.waBody")}
+                  Use the business number people already message. After you save
+                  it, scan the QR or enter the pairing code on your phone.
                 </p>
                 <WhatsAppNumberField
                   value={whatsapp}
@@ -264,22 +260,22 @@ export function ChannelConnectCard() {
                   {saving === "whatsapp"
                     ? "Connecting…"
                     : pair?.status === "waiting" && whatsappUnchanged
-                      ? t("connect.waitingPhone")
+                      ? "Waiting for phone"
                       : pair?.status === "error"
-                        ? t("connect.pairAgain")
+                        ? "Pair again"
                         : tenant.whatsappNumber
-                          ? t("connect.linkWhatsapp")
-                          : t("connect.connectWa")}
+                          ? "Link WhatsApp"
+                          : "Connect WhatsApp"}
                 </button>
               </div>
               <ConnectHowTo
-                title={t("settings.howto")}
+                title="What to do"
                 current={whatsappHowToStep(false, pairingActive)}
                 steps={[
-                  t("settings.waStep1"),
-                  t("connect.waStep2"),
-                  t("connect.waStep3"),
-                  t("connect.waStep4"),
+                  "Select the country, then enter the WhatsApp number.",
+                  "Click Connect WhatsApp to start linking.",
+                  "On your phone, open WhatsApp → Settings → Linked devices → Link a device.",
+                  "Scan the QR, or choose Link with phone number and type the 8-character code.",
                 ]}
               />
             </div>
@@ -297,17 +293,18 @@ export function ChannelConnectCard() {
                 <TelegramIcon />
               </span>
               <div>
-                <strong>{t("common.telegram")}</strong>
-                <span className="connect-status">{t("common.notConnected")}</span>
+                <strong>Telegram</strong>
+                <span className="connect-status">Not connected</span>
               </div>
             </div>
             <div className="connect-tile-split">
               <div className="connect-tile-main">
                 <p>
-                  {t("connect.tgBody")}
+                  Paste the bot token from BotFather. We confirm the bot with
+                  Telegram and save its username for customer links.
                 </p>
                 <label>
-                  {t("settings.botToken")}
+                  Bot token
                   <input
                     value={telegramToken}
                     onChange={(event) => {
@@ -330,17 +327,17 @@ export function ChannelConnectCard() {
                   className="primary"
                   disabled={saving === "telegram" || !telegramToken.trim()}
                 >
-                  {saving === "telegram" ? "Connecting…" : t("connect.connectTg")}
+                  {saving === "telegram" ? "Connecting…" : "Connect Telegram"}
                 </button>
               </div>
               <ConnectHowTo
-                title={t("settings.howto")}
+                title="What to do"
                 current={telegramToken.trim() ? 3 : 0}
                 steps={[
-                  t("settings.tgStep1"),
-                  t("connect.tgStep2"),
-                  t("connect.tgStep3"),
-                  t("connect.tgStep4"),
+                  "Open Telegram and message BotFather.",
+                  "Create a bot with /newbot, or pick one you already have.",
+                  "Copy the bot token BotFather shows you. It looks like 123456:AAH…",
+                  "Paste the token here and click Connect Telegram.",
                 ]}
               />
             </div>
@@ -350,7 +347,8 @@ export function ChannelConnectCard() {
 
       {canVerify ? null : (
         <p className="hint connect-footnote">
-          {t("connect.footnote")}
+          You only need one channel. WhatsApp is connected after you link your
+          phone. Telegram is connected after we verify the bot token.
         </p>
       )}
     </article>
@@ -406,7 +404,6 @@ function WhatsAppPairPanel({
   pair: WhatsAppPair | null;
   linked: boolean;
 }) {
-  const t = useT();
   if (linked || !pair || pair.status === "idle" || pair.status === "linked") {
     return null;
   }
@@ -414,7 +411,7 @@ function WhatsAppPairPanel({
   if (pair.status === "error") {
     return (
       <div className="connect-pair" role="alert">
-        <p>{pair.message ?? t("connect.qrExpired")}</p>
+        <p>{pair.message ?? "The QR expired. Start pairing again."}</p>
       </div>
     );
   }
@@ -425,50 +422,50 @@ function WhatsAppPairPanel({
         <img
           className="connect-pair-qr"
           src={pair.qrDataUrl}
-          alt={t("connect.qrAlt")}
+          alt="WhatsApp pairing QR code"
           width={180}
           height={180}
         />
       ) : (
         <div className="connect-pair-qr is-pending">
           {/finishing/i.test(pair.message ?? "")
-            ? t("connect.finishing")
-            : t("connect.preparingQr")}
+            ? "Finishing link…"
+            : "Preparing QR…"}
         </div>
       )}
       <div className="connect-pair-copy">
-        <strong>{t("connect.linkNumber")}</strong>
+        <strong>Link this number on your phone</strong>
         <p>
           {pair.message ??
-            t("connect.pairDefault")}
+            "Open WhatsApp → Settings → Linked devices → Link a device, then scan the QR. Or choose Link with phone number and enter the code below."}
         </p>
         {pair.pairingCode ? (
           <p className="connect-pair-code">{pair.pairingCode}</p>
         ) : (
-          <p className="hint">{t("connect.pairCodeHint")}</p>
+          <p className="hint">A pairing code will appear here if your phone asks for one.</p>
         )}
       </div>
     </div>
   );
 }
 
-function whatsappHint(value: string, t: Translate): string | null {
+function whatsappHint(value: string): string | null {
   if (!value) {
-    return t("connect.waEmpty");
+    return "Enter the WhatsApp number customers already message.";
   }
   const digits = value.replace(/\D/g, "");
   if (digits.length < 8 || digits.length > 15) {
-    return t("connect.waInvalid");
+    return "Select a country and enter the rest of the number.";
   }
   return null;
 }
 
-function telegramHint(value: string, t: Translate): string | null {
+function telegramHint(value: string): string | null {
   if (!value) {
-    return t("connect.tgEmpty");
+    return "Paste the bot token BotFather gave you.";
   }
   if (!/^\d{6,}:[A-Za-z0-9_-]{20,}$/.test(value.trim())) {
-    return t("connect.tgInvalid");
+    return "Paste the bot token BotFather gave you, not the @username.";
   }
   return null;
 }

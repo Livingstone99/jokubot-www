@@ -17,12 +17,8 @@ import {
   StatusPill,
   formatWhen,
 } from "../ui.js";
-import { useT } from "../locale.js";
-
-type Translate = ReturnType<typeof useT>;
 
 export function VerifyPage() {
-  const t = useT();
   const { me } = useAuth();
   const [channel, setChannel] = useState<"whatsapp" | "telegram">("whatsapp");
   const [contact, setContact] = useState("");
@@ -45,7 +41,7 @@ export function VerifyPage() {
 
   useEffect(() => {
     void refresh().catch((err: unknown) => {
-      setError(err instanceof Error ? err.message : t("sessions.loadError"));
+      setError(err instanceof Error ? err.message : "Could not load sessions.");
     });
     void api
       .purposes()
@@ -114,7 +110,7 @@ export function VerifyPage() {
   async function onCreate(event: FormEvent) {
     event.preventDefault();
     if (!contact) {
-      setError(t("verify.contactRequired"));
+      setError("Select a country and enter the customer number.");
       return;
     }
     setBusy(true);
@@ -131,7 +127,7 @@ export function VerifyPage() {
       setSubject(null);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("verify.createError"));
+      setError(err instanceof Error ? err.message : "Could not create session.");
     } finally {
       setBusy(false);
     }
@@ -144,10 +140,11 @@ export function VerifyPage() {
     <section className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">{t("nav.verify")}</p>
-          <h1>{t("verify.title")}</h1>
+          <p className="eyebrow">Verify</p>
+          <h1>Verification workspace</h1>
           <p className="lede">
-            {t("verify.lede")}
+            This page lets your team issue one-time codes manually and track the
+            verifications completed for this business.
           </p>
         </div>
       </header>
@@ -155,56 +152,57 @@ export function VerifyPage() {
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>{t("verify.checklist")}</h2>
+            <h2>Setup checklist</h2>
             <p className="hint">
-              {t("verify.checklistHint")}
+              Complete these steps once. After setup, operators can verify users from
+              this page.
             </p>
           </div>
         </header>
         {!hasChannelSetup ? (
           <p className="banner banner-warn">
-            {t("verify.notReady")}
+            Verification is not ready yet. Connect WhatsApp or Telegram first.
           </p>
         ) : null}
         <ol className="setup-flow">
           <SetupStep
             n="01"
-            title={t("verify.step1Title")}
-            body={t("verify.step1Body")}
-            to="/channels"
-            linkLabel={t("verify.openHome")}
+            title="Connect a channel"
+            body="Link WhatsApp or Telegram on Home so inbound codes can arrive."
+            to="/overview"
+            linkLabel="Open Home"
             done={hasChannelSetup}
-            status={hasChannelSetup ? t("verify.done") : t("verify.pending")}
+            status={hasChannelSetup ? "Done" : "Pending"}
             icon={<IconChannel />}
           />
           <SetupStep
             n="02"
-            title={t("verify.step2Title")}
-            body={t("verify.step2Body")}
+            title="Add a webhook"
+            body="Settings receives signed verification events on your backend."
             to="/settings"
-            linkLabel={t("verify.openSettings")}
+            linkLabel="Open Settings"
             done={hasWebhookSetup}
-            status={hasWebhookSetup ? t("verify.done") : t("verify.recommended")}
+            status={hasWebhookSetup ? "Done" : "Recommended"}
             icon={<IconWebhook />}
           />
           <SetupStep
             n="03"
-            title={t("verify.step3Title")}
-            body={t("verify.step3Body")}
+            title="Keep secrets server-side"
+            body="API and mint keys stay on your backend, not in browser or app code."
             to="/developers"
-            linkLabel={t("verify.openDevelopers")}
+            linkLabel="Open Developers"
             done={false}
-            status={t("verify.required")}
+            status="Required"
             icon={<IconKey />}
           />
           <SetupStep
             n="04"
-            title={t("overview.issueCode")}
-            body={t("verify.step4Body")}
+            title="Issue a code"
+            body="Create one here, or mint from your backend. The user sends it inbound."
             to="#issue"
-            linkLabel={t("verify.goIssue")}
+            linkLabel="Go to issue form"
             done={hasChannelSetup}
-            status={hasChannelSetup ? t("overview.ready") : t("ui.waiting")}
+            status={hasChannelSetup ? "Ready" : "Waiting"}
             icon={<IconScan />}
           />
         </ol>
@@ -213,29 +211,33 @@ export function VerifyPage() {
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>{t("verify.howTitle")}</h2>
+            <h2>How this works</h2>
             <p className="hint">
-              {t("verify.howHint")}
+              Customers must send a code from WhatsApp or Telegram. A completed
+              verification proves either a phone number (when disclosed) or a
+              messaging identity.
             </p>
           </div>
         </header>
         <p className="hint">
-          {t("verify.howBody")}
+          You can create codes in two ways: (1) manually from this page, or (2)
+          from your backend with the mint secret. Both appear in this history
+          once the inbound message is claimed.
         </p>
       </article>
 
       <form id="issue" className="panel" onSubmit={(event) => void onCreate(event)}>
         <header className="panel-head">
           <div>
-            <h2>{t("verify.issueTitle")}</h2>
+            <h2>Issue a code manually</h2>
             <p className="hint">
-              {t("verify.issueHint")}
+              Use this when an operator needs to verify one customer now.
             </p>
           </div>
         </header>
         <div className="row">
           <label>
-            {t("common.channel")}
+            Channel
             <select
               value={channel}
               onChange={(event) =>
@@ -243,15 +245,15 @@ export function VerifyPage() {
               }
             >
               <option value="whatsapp" disabled={!whatsappReady}>
-                {t("common.whatsapp")}
+                WhatsApp
               </option>
               <option value="telegram" disabled={!telegramReady}>
-                {t("common.telegram")}
+                Telegram
               </option>
             </select>
           </label>
           <label>
-            {t("purposes.field")}
+            Purpose
             <select
               value={purpose}
               onChange={(event) => setPurpose(event.target.value)}
@@ -267,42 +269,42 @@ export function VerifyPage() {
               )}
             </select>
             <span className="hint">
-              {t("lit.developers.5")}{" "}
-              <Link to="/purposes">{t("nav.purposes")}</Link>.
+              Sealed in the code. Status checks use this slug. Manage on{" "}
+              <Link to="/purposes">Purposes</Link>.
             </span>
           </label>
         </div>
         <WhatsAppNumberField
-          label={t("verify.contact")}
+          label="Customer contact"
           value={contact}
           preferredCountry={me?.tenant.country}
           required
           onChange={setContact}
           hint={
             channel === "telegram"
-              ? t("verify.contactHintTelegram")
-              : t("verify.contactHintWhatsapp")
+              ? "Country and number for the Telegram account that will send the code."
+              : "Country and number for the WhatsApp account that will send the code."
           }
         />
         {channel === "whatsapp" ? (
           <label>
-            {t("verify.customMessage")}
+            Custom message
             <textarea
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
-              placeholder={t("verify.customPlaceholder")}
+              placeholder="Hi, send this code to verify your WhatsApp number:"
               maxLength={500}
             />
             <span className="hint">
-              {t("verify.customHint")}
+              Optional. WhatsApp deep links prefill this text plus the code.
             </span>
           </label>
         ) : null}
         {!channelReady ? (
           <p className="banner banner-warn">
             {channel === "whatsapp"
-              ? t("verify.whatsappBlocked")
-              : t("verify.telegramBlocked")}
+              ? "Link WhatsApp from Home before issuing a code. Scan the QR or enter the pairing code on your phone."
+              : "Connect Telegram from Home with a BotFather token before issuing a code."}
           </p>
         ) : null}
         {error ? (
@@ -315,7 +317,7 @@ export function VerifyPage() {
           className="primary"
           disabled={busy || !channelReady || !contact}
         >
-          {busy ? "Creating…" : t("verify.createCode")}
+          {busy ? "Creating…" : "Create code"}
         </button>
       </form>
 
@@ -325,37 +327,38 @@ export function VerifyPage() {
           <div>
             <div className={status === "verified" ? "live is-ok" : "live"}>
               <span className="live-dot" aria-hidden="true" />
-              <strong>{liveLabel(status, subject, t)}</strong>
+              <strong>{liveLabel(status, subject)}</strong>
             </div>
             <p className="hint">
-              {t("lit.verify.66")}
+              Scan the QR or open the deep link. Only the customer number above
+              can complete this code. A used code is no longer valid.
             </p>
             <a className="primary compact" href={active.deepLink} target="_blank" rel="noreferrer">
-              {t("lit.developers.20")}{' '}{active.channel === "telegram" ? t("common.telegram") : "WhatsApp"}
+              Open {active.channel === "telegram" ? "Telegram" : "WhatsApp"}
             </a>
             <dl className="meta">
               {contact ? (
                 <>
-                  <dt>{t("verify.customer")}</dt>
+                  <dt>Customer</dt>
                   <dd>
                     <code>{contact}</code>
                   </dd>
                 </>
               ) : null}
-              <dt>{t("verify.code")}</dt>
+              <dt>Code</dt>
               <dd>
                 <code>{active.token}</code>
               </dd>
-              <dt>{t("verify.send")}</dt>
+              <dt>Send</dt>
               <dd>
                 <code>{active.messageToSend}</code>{" "}
-                <CopyButton value={active.messageToSend} label={t("verify.copyMessage")} />
+                <CopyButton value={active.messageToSend} label="Copy message" />
               </dd>
-              <dt>{t("verify.expires")}</dt>
+              <dt>Expires</dt>
               <dd>{formatWhen(active.expiresAt)}</dd>
               {active.purpose ? (
                 <>
-                  <dt>{t("purposes.field")}</dt>
+                  <dt>Purpose</dt>
                   <dd>
                     <code>{active.purpose}</code>
                   </dd>
@@ -363,7 +366,7 @@ export function VerifyPage() {
               ) : null}
             </dl>
             <button type="button" className="ghost compact" onClick={() => setActive(null)}>
-              {t("verify.another")}
+              Create another code
             </button>
           </div>
         </article>
@@ -372,28 +375,29 @@ export function VerifyPage() {
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>{t("verify.completedTitle")}</h2>
+            <h2>Completed verifications</h2>
             <p className="hint">
-              {t("verify.completedHint")}
+              Successful checks for this business across manual and backend-created
+              codes.
             </p>
           </div>
         </header>
         {completed.length === 0 ? (
           <EmptyState
-            title={t("verify.completedEmptyTitle")}
-            body={t("verify.completedEmptyBody")}
+            title="No completed verifications yet"
+            body="Create a code above, then have the customer send it from WhatsApp or Telegram."
           />
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>{t("ui.verified")}</th>
-                  <th>{t("common.channel")}</th>
-                  <th>{t("purposes.field")}</th>
-                  <th>{t("overview.colProved")}</th>
-                  <th>{t("verify.customer")}</th>
-                  <th>{t("overview.colIdentity")}</th>
+                  <th>Verified</th>
+                  <th>Channel</th>
+                  <th>Purpose</th>
+                  <th>Proved</th>
+                  <th>Customer</th>
+                  <th>Identity</th>
                 </tr>
               </thead>
               <tbody>
@@ -428,24 +432,24 @@ export function VerifyPage() {
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>{t("verify.allTitle")}</h2>
-            <p className="hint">{t("verify.allHint")}</p>
+            <h2>All sessions</h2>
+            <p className="hint">Newest first, including waiting and expired codes.</p>
           </div>
         </header>
         {items.length === 0 ? (
-          <EmptyState title={t("overview.noSessionsTitle")} body={t("verify.allEmptyBody")} />
+          <EmptyState title="No sessions yet" body="Create a code to start verification." />
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>{t("verify.colCreated")}</th>
-                  <th>{t("common.channel")}</th>
-                  <th>{t("nav.status")}</th>
-                  <th>{t("purposes.field")}</th>
-                  <th>{t("overview.colProved")}</th>
-                  <th>{t("verify.customer")}</th>
-                  <th>{t("overview.colIdentity")}</th>
+                  <th>Created</th>
+                  <th>Channel</th>
+                  <th>Status</th>
+                  <th>Purpose</th>
+                  <th>Proved</th>
+                  <th>Customer</th>
+                  <th>Identity</th>
                 </tr>
               </thead>
               <tbody>
@@ -502,10 +506,9 @@ function SetupStep({
   status: string;
   icon: ReactNode;
 }) {
-  const t = useT();
   const statusTone = done
     ? "tone-text-ok"
-    : status === t("verify.required")
+    : status === "Required"
       ? "tone-text-neutral"
       : "tone-text-warn";
   return (
@@ -583,17 +586,17 @@ function IconScan() {
   );
 }
 
-function liveLabel(status: string, subject: string | null, t: Translate): string {
+function liveLabel(status: string, subject: string | null): string {
   if (status === "verified") {
     return subject === "phone_number"
-      ? t("verify.livePhone")
-      : t("verify.liveIdentity");
+      ? "Verified phone number"
+      : "Verified messaging identity";
   }
   if (status === "expired") {
     return "Expired";
   }
   if (status === "error") {
-    return t("verify.liveError");
+    return "Realtime connection lost";
   }
-  return t("verify.liveWaiting");
+  return "Waiting for inbound code";
 }

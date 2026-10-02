@@ -13,7 +13,6 @@ import { useAuth } from "./auth.js";
 import { useT } from "./locale.js";
 import type { MessageKey } from "./i18n.js";
 import { ConnectedMark } from "./ui.js";
-import { ConfirmDialog, useToast } from "./kit/ui.js";
 
 type Translate = (key: MessageKey) => string;
 
@@ -190,14 +189,12 @@ export function ChannelLinkControls({
   const [busy, setBusy] = useState<"reconnect" | "disconnect" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const toast = useToast();
 
   if (!tenant) {
     return null;
   }
 
   const described = describeChannel(t, channel, tenant);
-  const channelName = channel === "whatsapp" ? t("common.whatsapp") : t("common.telegram");
   const showDisconnect =
     channel === "whatsapp"
       ? described.status === "connected" ||
@@ -261,7 +258,6 @@ export function ChannelLinkControls({
         current ? { ...current, tenant: result.tenant } : current,
       );
       setConfirming(false);
-      toast({ text: t("chan.disconnected", { channel: channelName }) });
     } catch (err) {
       setError(err instanceof Error ? err.message : t("channel.actionError"));
     } finally {
@@ -281,33 +277,43 @@ export function ChannelLinkControls({
           {t("channel.reconnect")}
         </button>
       ) : null}
-      {showDisconnect ? (
+      {showDisconnect && confirming ? (
+        <>
+          <button
+            type="button"
+            className="secondary compact"
+            disabled={busy !== null}
+            onClick={() => void onDisconnect()}
+          >
+            {t("channel.confirmDisconnect")}
+          </button>
+          <button
+            type="button"
+            className="ghost"
+            disabled={busy !== null}
+            onClick={() => setConfirming(false)}
+          >
+            {t("common.cancel")}
+          </button>
+        </>
+      ) : null}
+      {showDisconnect && !confirming ? (
         <button
           type="button"
-          className="danger compact"
+          className="ghost"
           disabled={busy !== null}
           onClick={() => setConfirming(true)}
         >
           {t("channel.disconnect")}
         </button>
       ) : null}
-      <ConfirmDialog
-        open={confirming}
-        title={t("chan.disconnectTitle", { channel: channelName })}
-        body={t("chan.disconnectBody")}
-        confirmLabel={t("channel.disconnect")}
-        danger
-        busy={busy !== null}
-        onConfirm={() => void onDisconnect()}
-        onCancel={() => setConfirming(false)}
-      />
       {notice ? (
         <p className="hint">
           {notice}
-          {pathname === "/channels" ? null : (
+          {pathname === "/overview" ? null : (
             <>
               {" "}
-              <Link to="/channels">{t("settings.finishHome")}</Link>
+              <Link to="/overview">{t("settings.finishHome")}</Link>
             </>
           )}
         </p>
