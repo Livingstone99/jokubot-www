@@ -1664,6 +1664,7 @@ const en = {
   "jk.set.webhookError": "This address was not saved. Check it starts with https://",
   "jk.set.allDev": "All developer settings",
   "jk.set.advanced": "Advanced settings",
+  "jk.ch.keepOpen": "Keep this window open until WhatsApp confirms. The QR code refreshes on its own.",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -3360,6 +3361,7 @@ const fr: Record<MessageKey, string> = {
   "jk.set.webhookError": "Cette adresse n'a pas été enregistrée. Vérifiez qu'elle commence par https://",
   "jk.set.allDev": "Tous les réglages développeur",
   "jk.set.advanced": "Réglages avancés",
+  "jk.ch.keepOpen": "Gardez cette fenêtre ouverte jusqu’à la confirmation de WhatsApp. Le QR code se met à jour tout seul.",
 };
 
 const catalogs: Record<Locale, Record<MessageKey, string>> = { en, fr };

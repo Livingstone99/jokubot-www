@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { api, type WhatsAppPair } from "../api.js";
 import { useAuth } from "../auth.js";
@@ -95,7 +95,11 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
     }
   }, [open]);
 
-  // Suivi de l'association toutes les 2 s tant que le QR est affiché.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+
+  // Suivi de l'association toutes les 2 s tant que le QR est affiché :
+  // la fenêtre reste ouverte jusqu'à ce que WhatsApp confirme le scan.
   useEffect(() => {
     if (!open || step !== "qr") return;
     let cancelled = false;
@@ -107,7 +111,7 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
         setMe((current) => (current ? { ...current, tenant: result.tenant } : current));
         if (result.tenant.whatsappLinked || result.pair.status === "linked") {
           toast({ text: t("jk.ch.waLinked") });
-          onClose();
+          closeRef.current();
         }
       } catch {
         // On garde le dernier QR affiché si une lecture échoue.
@@ -118,7 +122,7 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [open, step, setMe, onClose, toast, t]);
+  }, [open, step, setMe, toast, t]);
 
   async function onStart() {
     if (!number.trim()) {
@@ -144,6 +148,7 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
       open={open}
       title={t("jk.ch.connectWa")}
       onClose={onClose}
+      dismissible={step === "number"}
       footer={
         step === "number" ? (
           <>
@@ -188,6 +193,7 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
             <span className="jk-spinner" aria-hidden="true" />
             {pair?.status === "error" ? t("jk.ch.pairError") : t("jk.ch.waiting")}
           </p>
+          <p className="jk-muted jk-small">{t("jk.ch.keepOpen")}</p>
           <ol className="jk-steps-small">
             <li>{t("jk.ch.waStep1")}</li>
             <li>{t("jk.ch.waStep2")}</li>

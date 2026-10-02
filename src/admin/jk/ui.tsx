@@ -303,6 +303,7 @@ export function Modal({
   children,
   footer,
   size = "md",
+  dismissible = true,
 }: {
   open: boolean;
   title: string;
@@ -310,6 +311,8 @@ export function Modal({
   children: ReactNode;
   footer?: ReactNode;
   size?: "md" | "lg";
+  /** false : ni clic à côté ni Échap ne ferment (seuls Annuler et ×). */
+  dismissible?: boolean;
 }) {
   const t = useT();
   const ref = useRef<HTMLDialogElement>(null);
@@ -329,11 +332,11 @@ export function Modal({
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault();
-        onClose();
+        if (dismissible) onClose();
       }}
       onClick={(event) => {
-        // Clic sur le fond : fermer.
-        if (event.target === ref.current) onClose();
+        // Clic sur le fond : fermer (sauf pendant une étape à ne pas interrompre).
+        if (dismissible && event.target === ref.current) onClose();
       }}
     >
       {open ? (

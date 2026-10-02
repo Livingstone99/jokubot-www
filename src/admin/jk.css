@@ -3041,3 +3041,9 @@ a.jk-row:hover {
   background: var(--jk-red, #c8102e);
   color: #ffffff;
 }
+
+/* Pas de contour bleu du navigateur autour de la fenêtre elle-même. */
+.jk-modal:focus,
+.jk-modal:focus-visible {
+  outline: none;
+}
