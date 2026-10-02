@@ -151,3 +151,21 @@ un point, ou quand l'existant ne permettait pas de le suivre à la lettre.
   automatique.
 - **Détail des crédits par tâche.** L'ancienne page Utilisation reste
   disponible dans un bloc repliable en bas de page.
+
+## Tâche 9 — Réglages
+
+- **Enregistré par l'API.** Nom de l'entreprise, messages de vérification
+  et durée de conservation des messages (comme avant).
+- **Enregistré sur l'appareil.** L'API n'a pas de champ pour la photo de
+  profil, les horaires d'activité, le message d'accueil et les préférences de
+  notifications : ils sont enregistrés dans le navigateur au clic sur
+  « Enregistrer ». Ils ne sont pas encore utilisés par Jokubot côté serveur
+  (le message d'accueil n'est pas envoyé automatiquement, les notifications ne
+  sont pas encore émises). **À brancher quand l'API le permettra.**
+- **Nom et e-mail.** Affichés en lecture seule : l'API ne permet pas de les
+  modifier.
+- **Langue et thème.** S'appliquent immédiatement (pas besoin d'enregistrer).
+- **Sécurité.** Le changement de mot de passe n'a pas d'API : bouton
+  désactivé « Bientôt disponible ». « Sessions actives » montre cet appareil.
+  « Se déconnecter partout » déconnecte cet appareil (l'API n'a qu'une
+  déconnexion de la session en cours). **À valider.**

@@ -7,6 +7,7 @@ import { IconCheck, IconGlobe, IconHelp, IconLogout, IconMoon, IconSun, IconUser
 import { useLocale, useT } from "../locale.js";
 import { useTheme } from "../theme.js";
 import { initials } from "../ui.js";
+import { useProfilePhoto } from "../kit/prefs.js";
 
 type PageMeta = {
   title: MessageKey;
@@ -119,6 +120,7 @@ function HelpButton({ text, title }: { text: string; title: string }) {
 function AccountMenu({ name, email, onLogout }: { name: string; email: string; onLogout: () => void }) {
   const t = useT();
   const { locale, setLocale } = useLocale();
+  const photo = useProfilePhoto();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   useDismiss(open, rootRef, () => setOpen(false));
@@ -133,7 +135,7 @@ function AccountMenu({ name, email, onLogout }: { name: string; email: string; o
         aria-label={t("nav.userMenu")}
         onClick={() => setOpen((value) => !value)}
       >
-        {initials(name || "u")}
+        {photo ? <img src={photo} alt="" className="avatar-photo" /> : initials(name || "u")}
       </button>
       {open ? (
         <div className="header-panel account-panel" role="menu">

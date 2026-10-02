@@ -17,11 +17,23 @@ import {
 } from "../ChannelLink.js";
 import { useLocale, useT } from "../locale.js";
 import { useTheme } from "../theme.js";
-import { formatWhen, CopyButton } from "../ui.js";
+import { formatWhen, CopyButton, initials } from "../ui.js";
+import { readPrefs, resizePhoto, writePrefs, type Day, type LocalPrefs } from "../kit/prefs.js";
+import type { MessageKey } from "../i18n.js";
 import { ChannelConnectCard } from "../ChannelConnect.js";
 import { IconEye, IconEyeOff, IconSend } from "../kit/icons.js";
-import { ChannelIcon, ConfirmDialog, StatusDot, useToast } from "../kit/ui.js";
+import { ChannelIcon, ConfirmDialog, StatusDot, Switch, useToast } from "../kit/ui.js";
 import { WhatsAppNumberField } from "../WhatsAppNumberField.js";
+
+const DAYS: Array<[Day, MessageKey]> = [
+  ["mon", "set.mon"],
+  ["tue", "set.tue"],
+  ["wed", "set.wed"],
+  ["thu", "set.thu"],
+  ["fri", "set.fri"],
+  ["sat", "set.sat"],
+  ["sun", "set.sun"],
+];
 
 const REPLY_KEYS: VerificationReplyKey[] = [
   "verified",
@@ -79,10 +91,12 @@ export function SettingsPage({ view = "settings" }: { view?: "settings" | "chann
   const toast = useToast();
   const navigate = useNavigate();
   const [showToken, setShowToken] = useState(false);
+  const [prefs, setPrefs] = useState<LocalPrefs>(readPrefs);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const { mode, setMode } = useTheme();
   const [testChannel, setTestChannel] = useState<"whatsapp" | "telegram" | null>(null);
   const [gateway, setGateway] = useState<{ url: string; ready: boolean } | null>(null);
   const { me, setMe } = useAuth();
-  const { theme, setTheme } = useTheme();
   const { locale, setLocale } = useLocale();
   const t = useT();
   const isIndividual = me?.tenant.accountKind === "individual";
@@ -152,6 +166,9 @@ export function SettingsPage({ view = "settings" }: { view?: "settings" | "chann
       if (result.webhookSecret) {
         setWebhookSecret(result.webhookSecret);
       }
+      if (!isChannels && !writePrefs(prefs)) {
+        throw new Error(t("set.photoTooBig"));
+      }
       setSaved(true);
       toast({ text: isChannels ? t("chan.saved") : t("settings.savedToast") });
     } catch (err) {
@@ -160,6 +177,23 @@ export function SettingsPage({ view = "settings" }: { view?: "settings" | "chann
     } finally {
       setBusy(false);
     }
+  }
+
+  async function onPhoto(file: File | undefined) {
+    if (!file) return;
+    try {
+      const photo = await resizePhoto(file);
+      setPrefs((current) => ({ ...current, photo }));
+    } catch {
+      toast({ text: t("set.photoError"), tone: "error" });
+    }
+  }
+
+  async function onLogoutEverywhere() {
+    setConfirmLogout(false);
+    await api.logout().catch(() => undefined);
+    setMe(null);
+    navigate("/login");
   }
 
   async function onReplay(id: string) {
@@ -472,46 +506,167 @@ export function SettingsPage({ view = "settings" }: { view?: "settings" | "chann
           </>
         ) : (
           <>
-            <article className="panel">
-              <header className="panel-head">
-                <div>
-                  <h2>{t("settings.appearance")}</h2>
-                  <p className="hint">{t("theme.hint")}</p>
+            <article className="panel settings-section">
+              <h2>{t("set.profile")}</h2>
+              <div className="profile-row">
+                {prefs.photo ? (
+                  <img className="profile-photo" src={prefs.photo} alt={t("set.photoAlt")} />
+                ) : (
+                  <span className="profile-photo is-initials" aria-hidden="true">
+                    {initials(me?.name || me?.email || "u")}
+                  </span>
+                )}
+                <div className="profile-photo-actions">
+                  <label className="secondary compact file-button">
+                    {t("set.photoChange")}
+                    <input type="file" accept="image/*" onChange={(event) => void onPhoto(event.target.files?.[0])} />
+                  </label>
+                  {prefs.photo ? (
+                    <button type="button" className="secondary compact" onClick={() => setPrefs((p) => ({ ...p, photo: null }))}>
+                      {t("set.photoRemove")}
+                    </button>
+                  ) : null}
                 </div>
-              </header>
-              <div className="theme-choices">
-                <button
-                  type="button"
-                  className={theme === "light" ? "primary compact" : "secondary compact"}
-                  aria-pressed={theme === "light"}
-                  onClick={() => setTheme("light")}
-                >
-                  {t("theme.light")}
-                </button>
-                <button
-                  type="button"
-                  className={theme === "dark" ? "primary compact" : "secondary compact"}
-                  aria-pressed={theme === "dark"}
-                  onClick={() => setTheme("dark")}
-                >
-                  {t("theme.dark")}
-                </button>
               </div>
-            </article>
-
-            <article className="panel">
-              <header className="panel-head">
-                <div>
-                  <h2>{isIndividual ? t("settings.account") : t("settings.business")}</h2>
-                  <p className="hint">
-                    {isIndividual ? t("settings.accountHint") : t("settings.businessHint")}
-                  </p>
-                </div>
-              </header>
-              <label>
+              <div className="field-grid">
+                <label className="field-block">
+                  {t("set.yourName")}
+                  <input value={me?.name ?? ""} readOnly aria-describedby="profile-ro" />
+                </label>
+                <label className="field-block">
+                  {t("common.email")}
+                  <input value={me?.email ?? ""} readOnly aria-describedby="profile-ro" />
+                </label>
+              </div>
+              <p className="hint" id="profile-ro">{t("set.profileReadonly")}</p>
+              <label className="field-block">
                 {isIndividual ? t("settings.accountName") : t("settings.businessName")}
                 <input value={name} onChange={(event) => setName(event.target.value)} />
               </label>
+            </article>
+
+            <article className="panel settings-section">
+              <h2>{t("set.langTheme")}</h2>
+              <fieldset className="segmented-set">
+                <legend>{t("header.language")}</legend>
+                <div className="segmented-group">
+                  {(["fr", "en"] as const).map((code) => (
+                    <label key={code} className={locale === code ? "seg is-on" : "seg"}>
+                      <input type="radio" name="locale" checked={locale === code} onChange={() => setLocale(code)} />
+                      {code === "fr" ? "Français" : "English"}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset className="segmented-set">
+                <legend>{t("set.theme")}</legend>
+                <div className="segmented-group">
+                  {(["light", "dark", "auto"] as const).map((value) => (
+                    <label key={value} className={mode === value ? "seg is-on" : "seg"}>
+                      <input type="radio" name="theme" checked={mode === value} onChange={() => setMode(value)} />
+                      {value === "light" ? t("theme.light") : value === "dark" ? t("theme.dark") : t("theme.auto")}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <p className="hint">{t("set.instant")}</p>
+            </article>
+
+            <article className="panel settings-section">
+              <h2>{t("set.hours")}</h2>
+              <p className="hint">{t("set.hoursHint")}</p>
+              <fieldset className="days">
+                <legend className="sr-only">{t("set.days")}</legend>
+                {DAYS.map(([day, label]) => (
+                  <label key={day} className={prefs.days.includes(day) ? "day is-on" : "day"}>
+                    <input
+                      type="checkbox"
+                      checked={prefs.days.includes(day)}
+                      onChange={(event) =>
+                        setPrefs((p) => ({
+                          ...p,
+                          days: event.target.checked ? [...p.days, day] : p.days.filter((d) => d !== day),
+                        }))
+                      }
+                    />
+                    {t(label)}
+                  </label>
+                ))}
+              </fieldset>
+              <div className="field-grid">
+                <label className="field-block">
+                  {t("set.opensAt")}
+                  <input type="time" value={prefs.opensAt} onChange={(event) => setPrefs((p) => ({ ...p, opensAt: event.target.value }))} />
+                </label>
+                <label className="field-block">
+                  {t("set.closesAt")}
+                  <input type="time" value={prefs.closesAt} onChange={(event) => setPrefs((p) => ({ ...p, closesAt: event.target.value }))} />
+                </label>
+              </div>
+            </article>
+
+            <article className="panel settings-section">
+              <h2>{t("set.greeting")}</h2>
+              <label className="field-block">
+                <span className="hint">{t("set.greetingHint")}</span>
+                <textarea
+                  rows={3}
+                  value={prefs.greeting}
+                  placeholder={t("set.greetingPlaceholder")}
+                  onChange={(event) => setPrefs((p) => ({ ...p, greeting: event.target.value }))}
+                />
+              </label>
+            </article>
+
+            <article className="panel settings-section">
+              <h2>{t("set.notifications")}</h2>
+              <div className="switch-row">
+                <span>
+                  <strong>{t("set.notifyMessage")}</strong>
+                  <span className="hint">{t("set.notifyMessageHint")}</span>
+                </span>
+                <Switch
+                  checked={prefs.notifyMessage}
+                  label={t("set.notifyMessage")}
+                  onChange={(next) => setPrefs((p) => ({ ...p, notifyMessage: next }))}
+                />
+              </div>
+              <div className="switch-row">
+                <span>
+                  <strong>{t("set.notifyChannel")}</strong>
+                  <span className="hint">{t("set.notifyChannelHint")}</span>
+                </span>
+                <Switch
+                  checked={prefs.notifyChannel}
+                  label={t("set.notifyChannel")}
+                  onChange={(next) => setPrefs((p) => ({ ...p, notifyChannel: next }))}
+                />
+              </div>
+            </article>
+
+            <article className="panel settings-section">
+              <h2>{t("set.security")}</h2>
+              <div className="switch-row">
+                <span>
+                  <strong>{t("set.password")}</strong>
+                  <span className="hint">{t("set.passwordHint")}</span>
+                </span>
+                <button type="button" className="secondary compact" disabled>
+                  {t("auto.soon")}
+                </button>
+              </div>
+              <div className="switch-row">
+                <span>
+                  <strong>{t("set.sessions")}</strong>
+                  <span className="hint">{t("set.thisDevice")}</span>
+                </span>
+                <StatusDot tone="ok" label={t("set.activeNow")} />
+              </div>
+              <div>
+                <button type="button" className="danger" onClick={() => setConfirmLogout(true)}>
+                  {t("set.logoutEverywhere")}
+                </button>
+              </div>
             </article>
 
             <article className="panel">
@@ -603,6 +758,16 @@ export function SettingsPage({ view = "settings" }: { view?: "settings" | "chann
           </button>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={confirmLogout}
+        title={t("set.logoutTitle")}
+        body={t("set.logoutBody")}
+        confirmLabel={t("set.logoutEverywhere")}
+        danger
+        onConfirm={() => void onLogoutEverywhere()}
+        onCancel={() => setConfirmLogout(false)}
+      />
 
       <ConfirmDialog
         open={testChannel !== null}

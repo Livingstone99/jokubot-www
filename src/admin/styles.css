@@ -7090,3 +7090,216 @@ nav.subtabs {
     gap: 3px;
   }
 }
+
+/* =====================================================================
+   Tâche 9 — Réglages.
+   ===================================================================== */
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.settings-section h2 {
+  margin: 0;
+  font-size: 17px;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.profile-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.profile-photo.is-initials {
+  display: grid;
+  place-items: center;
+  background: var(--rd-solid);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.file-button {
+  position: relative;
+  cursor: pointer;
+}
+
+.file-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-button:focus-within {
+  outline: 2px solid var(--rd);
+  outline-offset: 2px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field-block input[readonly] {
+  background: var(--bg2);
+  color: var(--tx2);
+}
+
+.segmented-set {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.segmented-set legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-weight: 600;
+}
+
+.segmented-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  align-self: flex-start;
+}
+
+.seg {
+  position: relative;
+  min-height: 40px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: var(--tx2);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.seg input,
+.day input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.seg.is-on {
+  background: var(--tx);
+  color: var(--bg);
+}
+
+.seg:has(input:focus-visible),
+.day:has(input:focus-visible) {
+  outline: 2px solid var(--rd);
+  outline-offset: 2px;
+}
+
+.days {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.day {
+  position: relative;
+  min-width: 52px;
+  min-height: 44px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  color: var(--tx2);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.day.is-on {
+  background: var(--tx);
+  border-color: var(--tx);
+  color: var(--bg);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--bd);
+}
+
+.switch-row:first-of-type {
+  border-top: 0;
+}
+
+.switch-row > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.avatar-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.avatar-btn {
+  overflow: hidden;
+  padding: 0;
+}
+
+@media (max-width: 767px) {
+  .field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.switch-row > .kit-status {
+  flex-direction: row;
+  flex-shrink: 0;
+}
