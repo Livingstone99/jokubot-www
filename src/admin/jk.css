@@ -3016,3 +3016,14 @@ a.jk-row:hover {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Cartes de chiffres : contenu centré verticalement, hauteur régulière. */
+.jk-stat {
+  align-items: center;
+  min-height: 104px;
+}
+
+.jk-stat-text {
+  justify-content: center;
+  gap: 4px;
+}

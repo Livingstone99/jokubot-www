@@ -33,10 +33,8 @@ export function OverviewPage() {
   }, [load]);
 
   const name = me?.tenant.name || me?.name || "";
-  const day = Date.now() - 24 * 3600 * 1000;
   const inbound = data?.inbound ?? [];
   const replies = inbound.filter((row) => activityKind(row.outcome) === "replied");
-  const repliesToday = replies.filter((row) => new Date(row.receivedAt).getTime() >= day).length;
   const credits = data?.overview.credits;
 
   // Nom affiché et dernier message de chaque conversation, pour l'activité récente.
@@ -56,20 +54,17 @@ export function OverviewPage() {
             icon={IconMessage}
             label={t("jk.dash.received")}
             value={inbound.length}
-            hint={t("jk.dash.today", { count: data.overview.inboundLast24h })}
           />
-          <StatCard icon={IconCircleCheck} label={t("jk.dash.replies")} value={replies.length} hint={t("jk.dash.today", { count: repliesToday })} />
+          <StatCard icon={IconCircleCheck} label={t("jk.dash.replies")} value={replies.length} />
           <StatCard
             icon={IconShieldCheck}
             label={t("jk.dash.verified")}
             value={data.overview.verified}
-            hint={t("jk.dash.today", { count: data.overview.verifiedLast24h })}
           />
           <StatCard
             icon={IconCard}
             label={t("jk.dash.credits")}
             value={credits?.hasPlan ? credits.remaining.toLocaleString() : "—"}
-            hint={credits?.hasPlan ? t("jk.dash.creditsOf", { total: credits.included.toLocaleString() }) : t("jk.dash.noPlan")}
           />
         </div>
       )}
