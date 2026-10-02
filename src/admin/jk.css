@@ -21,7 +21,7 @@
   --gray-900: #171717;
 
   /* Rôles */
-  --jk-bg: var(--gray-50);
+  --jk-bg: var(--white);
   --jk-surface: var(--white);
   --jk-ink: var(--gray-900);
   --jk-ink-2: var(--gray-600);
@@ -2841,4 +2841,96 @@ a.jk-row:hover {
 
 .jk-select {
   display: block;
+}
+
+/* Fond entièrement blanc : les zones se distinguent par des bordures fines. */
+.jk-header {
+  background: color-mix(in srgb, var(--white) 92%, transparent);
+}
+
+[data-theme="dark"] .jk-header {
+  background: color-mix(in srgb, #0a0a0a 92%, transparent);
+}
+
+.jk-conv-body,
+.jk-preview {
+  background: var(--gray-50);
+}
+
+[data-theme="dark"] .jk-conv-body,
+[data-theme="dark"] .jk-preview {
+  background: #0d0d0d;
+}
+
+.jk-card,
+.jk-stat {
+  box-shadow: none;
+}
+
+/* =====================================================================
+   Boutons du contenu en rouge (même rouge que la page de connexion).
+   Le menu, l'en-tête et les états restent noir et blanc.
+   ===================================================================== */
+
+.jk {
+  --jk-red: #c8102e;
+  --jk-red-hover: #a80e26;
+  --jk-red-soft: rgba(200, 16, 46, 0.06);
+  --jk-red-text: #c8102e;
+}
+
+[data-theme="dark"] .jk {
+  --jk-red: #d81b3a;
+  --jk-red-hover: #e3304c;
+  --jk-red-soft: rgba(255, 90, 106, 0.1);
+  --jk-red-text: #ff5a6a;
+}
+
+.jk-content .jk-btn.is-primary,
+.jk-modal .jk-btn.is-primary,
+.jk-fab {
+  background: var(--jk-red);
+  border-color: var(--jk-red);
+  color: #ffffff;
+}
+
+.jk-content .jk-btn.is-primary:hover:not(:disabled),
+.jk-modal .jk-btn.is-primary:hover:not(:disabled) {
+  background: var(--jk-red-hover);
+  border-color: var(--jk-red-hover);
+}
+
+.jk-content .jk-btn.is-secondary,
+.jk-modal .jk-btn.is-secondary {
+  border-color: var(--jk-red);
+  color: var(--jk-red-text);
+}
+
+.jk-content .jk-btn.is-secondary:hover:not(:disabled),
+.jk-modal .jk-btn.is-secondary:hover:not(:disabled) {
+  background: var(--jk-red-soft);
+  border-color: var(--jk-red-hover);
+}
+
+.jk-content .jk-btn.is-text,
+.jk-modal .jk-btn.is-text,
+.jk-content .jk-small a,
+.jk-content .jk-muted a {
+  color: var(--jk-red-text);
+}
+
+/* Anciennes pages reprises (Assistant, Réponses, Finalités, Développeur). */
+.jk-content .primary {
+  background: var(--jk-red);
+  border-color: var(--jk-red);
+  color: #ffffff;
+}
+
+.jk-content .primary:hover:not(:disabled) {
+  background: var(--jk-red-hover);
+}
+
+.jk-content .secondary {
+  border-color: var(--jk-red);
+  color: var(--jk-red-text);
 }
