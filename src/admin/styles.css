@@ -7434,3 +7434,14 @@ pre {
   border-radius: 999px;
   font-weight: 600;
 }
+
+/* Les boutons radio invisibles des cartes de choix restent dans la carte. */
+.choice input,
+.seg input,
+.day input {
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}

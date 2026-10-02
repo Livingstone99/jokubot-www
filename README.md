@@ -5,11 +5,11 @@ Page d'accueil publique de JokuBot : [github.com/Livingstone99/jokubot-www](http
 Ce dépôt contient deux surfaces, sans API ni base de données :
 
 - la **page marketing** (`index.html`). Les boutons « Commencer maintenant », « Acheter » et « Accéder à la plateforme » envoient vers `<VITE_APP_ORIGIN>/login`.
-- une **copie de l'espace business** (`admin.html`) pour le travail d'interface. Les écrans sont ceux du tableau de bord (vue d'ensemble, sessions, vérification, motifs, assistant, déclencheurs, réactions, activité, usage, réglages, développeurs). Les données sont un exemple en mémoire, le commerce **Maison Kofi**. Rien n'appelle l'application JokuBot.
+- une **copie de l'espace business** (`admin.html`) pour le travail d'interface. Les données sont un exemple en mémoire, le commerce **Maison Kofi**. Rien n'appelle l'application JokuBot.
 
-Ouvrir l'espace en local : http://127.0.0.1:5174/admin.html. Sur GitHub Pages : `admin.html`. La navigation est dans le fragment (`#/overview`, `#/sessions`, …). La documentation, le statut et la sécurité restent sur l'application (`VITE_APP_ORIGIN`).
+Ouvrir l'espace en local : http://127.0.0.1:5174/admin.html. Sur GitHub Pages : `admin.html`. La navigation est dans le fragment (`#/overview`, `#/messages`, …). La documentation, le statut et la sécurité restent sur l'application (`VITE_APP_ORIGIN`).
 
-Les fichiers de l'espace sont dans `src/admin/`. Le style de ces écrans est `src/admin/styles.css` (rouge pour l'action principale et la marque, marine pour la structure). La page marketing reste noir et blanc, dans `src/styles.css`.
+Les fichiers de l'espace sont dans `src/admin/`, son style dans `src/admin/styles.css`. La page marketing a son propre style, dans `src/styles.css`. Le détail de l'espace est plus bas, section « Espace business (`admin.html`) ».
 
 ## Démarrer en local
 
@@ -136,3 +136,50 @@ Deux variables du dépôt GitHub (Settings → Variables) règlent le build :
 - Noir et blanc strict : pas de couleur d'accent.
 - Deux polices seulement : Plus Jakarta Sans (texte) et IBM Plex Mono (petits libellés). Ne pas en ajouter.
 - Pas de texte marketing de remplissage.
+
+## Espace business (`admin.html`)
+
+Interface pour des utilisateurs non techniques (petits commerçants, équipes support), pensée d'abord pour le téléphone. Noir, blanc et un peu de rouge. Les choix faits quand le cahier des charges ne suffisait pas sont dans [`docs/ui-hypotheses.md`](docs/ui-hypotheses.md).
+
+### Navigation
+
+| Écran | Adresse | Contenu |
+| --- | --- | --- |
+| Accueil | `#/overview` | Canaux, actions rapides, chiffres clés, derniers messages |
+| Messages | `#/messages` | Conversations WhatsApp et Telegram (recherche, filtres, non-lus) |
+| Réponses automatiques | `#/automations` | Règles « Quand… / Alors… », formulaire en 3 étapes, assistant, réponses intelligentes, éditeur complet |
+| Mes canaux | `#/channels` | Connexion WhatsApp (QR) et Telegram, test, déconnexion, paramètres avancés |
+| Utilisation | `#/usage` | Messages par période, répartition, forfait, export CSV |
+| Réglages | `#/settings` | Profil, langue, thème, horaires, notifications, sécurité |
+| Avancé | `#/verify`, `#/purposes`, `#/developers`, `#/journal` | Vérification, finalités, clés API, journal technique |
+
+- Ordinateur (≥ 1024 px) : menu latéral de 260 px. Tablette (768–1023 px) : 72 px, icônes avec info-bulle. Téléphone (< 768 px) : barre en bas à 5 entrées et page « Plus » (`#/more`).
+- Anciennes adresses redirigées : `#/sessions` et `#/activity` → `#/messages` ; `#/setup`, `#/triggers`, `#/reactions` → onglets de `#/automations`.
+
+### Organisation du code
+
+| Dossier / fichier | Rôle |
+| --- | --- |
+| `src/admin/layout/` | `AppShell` (cadre), `Navigation` (menu latéral, barre du bas, page Plus), `PageHeader` (titre, aide, thème, avatar) |
+| `src/admin/kit/` | Composants partagés (`ui.tsx` : Badge, StatusDot, Skeleton, EmptyBlock, ErrorBlock, StatCard, ChannelCard, Switch, Toast, ConfirmDialog, BarChart), icônes (`icons.tsx`), boîte de réception et non-lus (`inbox.tsx`), préférences locales (`prefs.ts`) |
+| `src/admin/pages/` | Une page par écran : `Overview`, `Messages`, `Automations`, `UsageOverview`, `Settings` (vues Mes canaux et Réglages), puis les pages Avancé |
+| `src/admin/i18n.ts` | Tous les textes, en anglais et en français |
+| `src/admin/styles.css` | Variables de couleur (`--bg`, `--bg2`, `--tx`, `--tx2`, `--bd`, `--rd`), thèmes clair/sombre, styles de chaque tâche de la refonte |
+
+### Ajouter ou modifier un texte
+
+Tout texte visible passe par `t("clé")`. Pour ajouter des textes dans les deux langues :
+
+```bash
+# fichier.json : {"ma.cle": ["English text", "Texte français"]}
+python3 scripts/i18n-add.py fichier.json
+```
+
+### Règles de l'espace
+
+- Le rouge (`--rd`) ne sert qu'aux badges de non-lus, à la barre du menu actif, aux actions dangereuses (Déconnecter, Supprimer) et au pic des graphiques.
+- Bouton principal noir (blanc en sombre), boutons secondaires à contour, pilule, hauteur 44 px.
+- Focus clavier visible : contour rouge de 2 px. Interrupteurs en `role="switch"`, menu actif en `aria-current="page"`.
+- Chaque écran a un état de chargement, un état vide et un état d'erreur avec « Réessayer ».
+- Contrôlé à 360, 768, 1280 et 1920 px, en clair et en sombre : aucune page ne défile horizontalement.
+
