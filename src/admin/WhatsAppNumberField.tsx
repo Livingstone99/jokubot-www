@@ -29,7 +29,7 @@ export function WhatsAppNumberField({
   const [country, setCountry] = useState(parsed.country);
   const [national, setNational] = useState(parsed.national);
   const fieldLabel = label ?? t("phone.label");
-  const fieldHint = hint === undefined ? t("phone.leadingZeroHint") : hint;
+  const fieldHint = hint;
   const countryRef = useRef(country);
   const nationalRef = useRef(national);
   countryRef.current = country;
