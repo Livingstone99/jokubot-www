@@ -37,15 +37,19 @@ export function ChannelCards() {
   return (
     <>
       <div className="jk-grid-2">
-        {cards.map(({ id, name, value, Icon }) => {
+        {cards.map(({ id, name, value }) => {
           const state = describeChannel(t, id, tenant);
           const linked = id === "whatsapp" ? tenant?.whatsappLinked : tenant?.telegramLinked;
           return (
             <article key={id} className="jk-card jk-channel">
               <div className="jk-channel-top">
-                <span className="jk-channel-icon">
-                  <Icon size={24} />
-                </span>
+                <img
+                  className="jk-channel-logo"
+                  src={`${import.meta.env.BASE_URL}channels/${id}.jpg`}
+                  alt=""
+                  width={52}
+                  height={52}
+                />
                 <Badge tone={toneOf(state.status)}>{state.label}</Badge>
               </div>
               <h3>{name}</h3>

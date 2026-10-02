@@ -3027,3 +3027,17 @@ a.jk-row:hover {
   justify-content: center;
   gap: 4px;
 }
+
+/* Logos officiels de WhatsApp et Telegram sur les cartes de canaux. */
+.jk-channel-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+/* Badges pleins (Connecté, Activée, Validé) en rouge. */
+.jk-badge.is-solid {
+  background: var(--jk-red, #c8102e);
+  color: #ffffff;
+}
