@@ -3509,3 +3509,16 @@ a.jk-row:hover {
     gap: 10px;
   }
 }
+
+/* Mobile : favicon JokuBot à la place du menu burger et du logo. */
+.jk-header-brand img.jk-header-favicon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  filter: none;
+}
+
+[data-theme="dark"] .jk-header-brand img.jk-header-favicon {
+  filter: none;
+}

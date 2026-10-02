@@ -16,14 +16,12 @@ import {
   IconLink,
   IconList,
   IconLogout,
-  IconMenu,
   IconMore,
   IconPlus,
   IconSettings,
   IconSparkles,
   IconTag,
   IconUser,
-  IconX,
   type IconComponent,
 } from "../jk/icons.js";
 import { Avatar, Dropdown, Switch, ToastProvider } from "../jk/ui.js";
@@ -76,15 +74,10 @@ export function AppShell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const t = useT();
-  const [drawer, setDrawer] = useState(false);
 
   useEffect(() => {
     document.title = `${t(titleFor(pathname))} · JokuBot`;
   }, [t, pathname]);
-
-  useEffect(() => {
-    setDrawer(false);
-  }, [pathname]);
 
   // Tant qu'un canal est en cours de connexion ou en panne, son état est relu toutes les 15 s.
   useEffect(() => {
@@ -129,19 +122,8 @@ export function AppShell() {
 
           <div className="jk-main">
             <header className="jk-header">
-              <button
-                type="button"
-                className="jk-icon-btn jk-header-menu"
-                aria-label={t("jk.openMenu")}
-                aria-expanded={drawer}
-                onClick={() => setDrawer(true)}
-              >
-                <IconMenu />
-              </button>
               <Link to="/overview" className="jk-header-brand">
-                <span className="mark" aria-hidden="true">
-                  <JokubotMark size={24} />
-                </span>
+                <img className="jk-header-favicon" src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={30} height={30} />
                 JokuBot
               </Link>
               <span className="jk-header-title">{t(titleFor(pathname))}</span>
@@ -178,25 +160,6 @@ export function AppShell() {
           })}
         </nav>
 
-        {drawer ? (
-          <div className="jk-drawer" role="dialog" aria-modal="true" aria-label={t("jk.menu")}>
-            <button type="button" className="jk-drawer-scrim" aria-label={t("jk.close")} onClick={() => setDrawer(false)} />
-            <div className="jk-drawer-panel">
-              <div className="jk-drawer-head">
-                <Brand />
-                <button type="button" className="jk-icon-btn" aria-label={t("jk.close")} onClick={() => setDrawer(false)}>
-                  <IconX />
-                </button>
-              </div>
-              <NavList items={MAIN_NAV} />
-              <p className="jk-nav-label">{t("jk.nav.tools")}</p>
-              <NavList items={TOOLS_NAV} />
-              <div className="jk-sidebar-foot">
-                <UserMenu business={business} email={me?.email ?? ""} onLogout={() => void onLogout()} align="left" full />
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
     </ToastProvider>
   );
