@@ -169,3 +169,13 @@ un point, ou quand l'existant ne permettait pas de le suivre à la lettre.
   désactivé « Bientôt disponible ». « Sessions actives » montre cet appareil.
   « Se déconnecter partout » déconnecte cet appareil (l'API n'a qu'une
   déconnexion de la session en cours). **À valider.**
+
+## Tâche 10 — Avancé
+
+- **Contenu inchangé.** Vérifier, Finalités, Clés API et développeurs et le
+  Journal des messages reçus gardent leurs fonctions ; seul le style change
+  (titre dans l'en-tête de page, panneaux, tableaux, bandeaux, boutons).
+- **Actions dangereuses en rouge.** « Supprimer » (Finalités) passe en rouge,
+  comme « Déconnecter » et « Supprimer » ailleurs.
+- **Docs, État du service, Sécurité.** Ce sont des pages de l'application
+  JokuBot principale (liens externes) : elles ne font pas partie de ce dépôt.

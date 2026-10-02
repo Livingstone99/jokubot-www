@@ -7303,3 +7303,134 @@ nav.subtabs {
   flex-direction: row;
   flex-shrink: 0;
 }
+
+/* =====================================================================
+   Tâche 10 — Pages Avancé (et pages existantes) au nouveau style.
+   Le titre de la page est dans l'en-tête : on retire le doublon.
+   ===================================================================== */
+
+.route-root > .page > .page-head h1,
+.route-root > .page > .page-head .eyebrow {
+  display: none;
+}
+
+.route-root > .page > .page-head {
+  margin-bottom: 0;
+}
+
+.route-root > .page > .page-head .lede {
+  margin: 0;
+  color: var(--tx2);
+}
+
+.panel {
+  padding: 20px;
+}
+
+.panel h2,
+.panel-head h2 {
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.panel-head {
+  margin-bottom: 12px;
+}
+
+.panel .hint,
+.hint {
+  color: var(--tx2);
+}
+
+/* Boutons texte (anciennement « ghost ») : soulignés, cible de 44 px. */
+.ghost {
+  appearance: none;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--tx);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.ghost:hover {
+  color: var(--tx2);
+}
+
+/* Bandeaux : fond neutre, filet de couleur à gauche. */
+.banner {
+  border-radius: 12px;
+  border: 1px solid var(--bd);
+  border-left-width: 3px;
+  background: var(--bg);
+}
+
+.banner-warn {
+  background: var(--bg);
+  border-color: var(--bd);
+  border-left-color: var(--warn);
+}
+
+.banner-danger {
+  background: var(--bg);
+  border-color: var(--bd);
+  border-left-color: var(--rd);
+  color: var(--tx);
+}
+
+/* Tableaux */
+table {
+  font-size: 14px;
+}
+
+th {
+  color: var(--tx2);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  background: var(--bg2);
+}
+
+th,
+td {
+  padding: 12px 12px;
+  border-bottom-color: var(--bd);
+}
+
+.table-wrap {
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table-wrap tbody tr {
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+
+.table-wrap tbody tr:hover {
+  background: var(--bg2);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+}
+
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Pastilles d'état neutres, couleur réservée à un petit point. */
+.pill {
+  border-radius: 999px;
+  font-weight: 600;
+}

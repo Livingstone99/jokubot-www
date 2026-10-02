@@ -194,7 +194,7 @@ export function VerifyPage() {
             to="/developers"
             linkLabel={t("verify.openDevelopers")}
             done={false}
-            status="Required"
+            status={t("verify.required")}
             icon={<IconKey />}
           />
           <SetupStep
@@ -502,9 +502,10 @@ function SetupStep({
   status: string;
   icon: ReactNode;
 }) {
+  const t = useT();
   const statusTone = done
     ? "tone-text-ok"
-    : status === "Required"
+    : status === t("verify.required")
       ? "tone-text-neutral"
       : "tone-text-warn";
   return (
