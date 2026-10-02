@@ -1757,6 +1757,12 @@ const en = {
   "jk.ch.addIntro": "Choose the network to connect to JokuBot.",
   "jk.ch.addLinked": "Connected · choose to use another account",
   "jk.ch.addNotLinked": "Not connected yet",
+  "jk.ch.stepNumber": "Number",
+  "jk.ch.stepScan": "Scan",
+  "jk.ch.stepDone": "Done",
+  "jk.ch.doneTitle": "WhatsApp is connected",
+  "jk.ch.doneBody": "Your customers can write to {number} as usual. JokuBot now reads their messages and replies with your automations.",
+  "jk.ch.doneAuto": "Create an automation",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -3546,6 +3552,12 @@ const fr: Record<MessageKey, string> = {
   "jk.ch.addIntro": "Choisissez le réseau à connecter à JokuBot.",
   "jk.ch.addLinked": "Connecté · choisir pour utiliser un autre compte",
   "jk.ch.addNotLinked": "Pas encore connecté",
+  "jk.ch.stepNumber": "Numéro",
+  "jk.ch.stepScan": "Scan",
+  "jk.ch.stepDone": "Terminé",
+  "jk.ch.doneTitle": "WhatsApp est connecté",
+  "jk.ch.doneBody": "Vos clients peuvent écrire au {number} comme d’habitude. JokuBot lit maintenant leurs messages et répond avec vos automatisations.",
+  "jk.ch.doneAuto": "Créer une automatisation",
 };
 
 const catalogs: Record<Locale, Record<MessageKey, string>> = { en, fr };

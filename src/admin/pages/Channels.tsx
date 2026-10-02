@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { api, type WhatsAppPair } from "../api.js";
 import { useAuth } from "../auth.js";
 import { describeChannel } from "../ChannelLink.js";
-import { IconChevronRight, IconEye, IconEyeOff, IconPlus, IconQrCode, IconRefresh, IconTelegram, IconWhatsApp } from "../jk/icons.js";
+import { IconCheck, IconChevronRight, IconEye, IconEyeOff, IconPlus, IconQrCode, IconRefresh, IconTelegram, IconWhatsApp } from "../jk/icons.js";
 import { Badge, Card, ConfirmModal, Fab, Field, Modal, PageTitle, useToast, type BadgeTone } from "../jk/ui.js";
 import { useT } from "../locale.js";
 import { WhatsAppNumberField } from "../WhatsAppNumberField.js";
@@ -122,7 +122,7 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
   const { me, setMe } = useAuth();
   const [number, setNumber] = useState(me?.tenant.whatsappNumber ?? "");
   const [pair, setPair] = useState<WhatsAppPair | null>(null);
-  const [step, setStep] = useState<"number" | "qr">("number");
+  const [step, setStep] = useState<"number" | "qr" | "done">("number");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -133,9 +133,6 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
       setError(null);
     }
   }, [open]);
-
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
 
   // Suivi de l'association toutes les 2 s tant que le QR est affiché :
   // la fenêtre reste ouverte jusqu'à ce que WhatsApp confirme le scan.
@@ -148,9 +145,10 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
         if (cancelled) return;
         setPair(result.pair);
         setMe((current) => (current ? { ...current, tenant: result.tenant } : current));
+        // Scan confirmé : on affiche l'étape « Terminé » (le suivi s'arrête).
         if (result.tenant.whatsappLinked || result.pair.status === "linked") {
           toast({ text: t("jk.ch.waLinked") });
-          closeRef.current();
+          setStep("done");
         }
       } catch {
         // On garde le dernier QR affiché si une lecture échoue.
@@ -187,9 +185,18 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
       open={open}
       title={t("jk.ch.connectWa")}
       onClose={onClose}
-      dismissible={step === "number"}
+      dismissible={step !== "qr"}
       footer={
-        step === "number" ? (
+        step === "done" ? (
+          <>
+            <Link className="jk-btn is-secondary" to="/triggers/new" onClick={onClose}>
+              {t("jk.ch.doneAuto")}
+            </Link>
+            <button type="button" className="jk-btn is-primary" onClick={onClose}>
+              {t("jk.done")}
+            </button>
+          </>
+        ) : step === "number" ? (
           <>
             <button type="button" className="jk-btn is-secondary" onClick={onClose}>
               {t("jk.cancel")}
@@ -205,7 +212,30 @@ function ConnectWhatsApp({ open, onClose }: { open: boolean; onClose: () => void
         )
       }
     >
-      {step === "number" ? (
+      <ol className="jk-steps jk-connect-steps" aria-label={t("jk.ch.connectWa")}>
+        {(["number", "qr", "done"] as const).map((id, index) => {
+          const order = ["number", "qr", "done"].indexOf(step);
+          const finished = index < order || step === "done";
+          const label = id === "number" ? t("jk.ch.stepNumber") : id === "qr" ? t("jk.ch.stepScan") : t("jk.ch.stepDone");
+          return (
+            <li key={id} className={finished ? "is-done" : index === order ? "is-current" : ""} aria-current={index === order ? "step" : undefined}>
+              <span className="jk-steps-num" aria-hidden="true">
+                {finished ? <IconCheck size={14} /> : index + 1}
+              </span>
+              <span className="jk-steps-label">{label}</span>
+            </li>
+          );
+        })}
+      </ol>
+      {step === "done" ? (
+        <div className="jk-connect-done" role="status">
+          <span className="jk-connect-done-icon" aria-hidden="true">
+            <IconCheck size={36} />
+          </span>
+          <h3>{t("jk.ch.doneTitle")}</h3>
+          <p className="jk-muted">{t("jk.ch.doneBody", { number: me?.tenant.whatsappNumber || number })}</p>
+        </div>
+      ) : step === "number" ? (
         <>
           <p className="jk-muted">{t("jk.ch.waIntro")}</p>
           <WhatsAppNumberField value={number} preferredCountry={me?.tenant.country} onChange={setNumber} />
