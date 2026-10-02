@@ -17,7 +17,6 @@ import {
   IconList,
   IconLogout,
   IconMenu,
-  IconMessage,
   IconMore,
   IconSettings,
   IconShieldCheck,
@@ -38,7 +37,6 @@ type NavItem = { to: string; label: MessageKey; icon: IconComponent; end?: boole
 /** Menu principal : les mots d'un commerçant, pas ceux d'un développeur. */
 export const MAIN_NAV: NavItem[] = [
   { to: "/overview", label: "jk.nav.dashboard", icon: IconHome, end: true },
-  { to: "/sessions", label: "jk.nav.conversations", icon: IconMessage },
   { to: "/triggers", label: "jk.nav.automations", icon: IconBot },
   { to: "/verify", label: "jk.nav.verify", icon: IconShieldCheck },
   { to: "/channels", label: "jk.nav.channels", icon: IconLink },
@@ -57,7 +55,6 @@ export const TOOLS_NAV: NavItem[] = [
 
 const BOTTOM_NAV: NavItem[] = [
   { to: "/overview", label: "jk.nav.home", icon: IconHome, end: true },
-  { to: "/sessions", label: "jk.nav.messages", icon: IconMessage },
   { to: "/triggers", label: "jk.nav.autoShort", icon: IconBot },
   { to: "/verify", label: "jk.nav.verifyShort", icon: IconShieldCheck },
   { to: "/more", label: "jk.nav.more", icon: IconMore },
@@ -69,6 +66,8 @@ function titleFor(pathname: string): MessageKey {
   const all = [...MAIN_NAV, ...TOOLS_NAV];
   const found = all.find((item) => (item.end ? pathname === item.to : pathname.startsWith(item.to)));
   if (pathname.startsWith("/more")) return "jk.nav.more";
+  // Plus dans le menu, mais encore ouvert depuis l'activité récente du tableau de bord.
+  if (pathname.startsWith("/sessions")) return "jk.nav.conversations";
   return found?.label ?? "jk.nav.dashboard";
 }
 
