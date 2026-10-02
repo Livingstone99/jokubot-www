@@ -15,7 +15,7 @@ import { SettingsPage } from "./pages/Settings.js";
 import { SetupPage } from "./pages/Setup.js";
 import { SignupPage } from "./pages/Signup.js";
 import { TriggersPage } from "./pages/Triggers.js";
-import { UsagePage } from "./pages/Usage.js";
+import { UsageOverviewPage } from "./pages/UsageOverview.js";
 import { VerifyPage } from "./pages/Verify.js";
 import { LocaleProvider, useT } from "./locale.js";
 import { ThemeProvider } from "./theme.js";
@@ -96,7 +96,7 @@ export function App() {
                 <Route path="editor" element={<TriggersPage />} />
               </Route>
               <Route path="channels" element={<SettingsPage view="channels" />} />
-              <Route path="usage" element={<UsagePage />} />
+              <Route path="usage" element={<UsageOverviewPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="more" element={<MorePage />} />
               <Route path="verify" element={<VerifyPage />} />

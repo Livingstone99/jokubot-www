@@ -135,3 +135,19 @@ un point, ou quand l'existant ne permettait pas de le suivre à la lettre.
   test) et l'historique des livraisons.
 - **Outil.** `scripts/i18n-add.py` ajoute ou met à jour des textes dans
   `src/admin/i18n.ts` à partir d'un fichier JSON.
+
+## Tâche 8 — Utilisation
+
+- **Source des chiffres.** Le graphique, la répartition et l'export CSV
+  s'appuient sur le journal des messages reçus (`api.inbound`). Sa durée
+  dépend de la durée de conservation choisie dans Réglages (90 jours par
+  défaut).
+- **Graphique sur 24 h.** Une barre par heure ; sur 7 et 30 jours, une barre
+  par jour. Les valeurs sont aussi lues par les lecteurs d'écran.
+- **Forfait.** La jauge utilise les crédits du mois (inclus / consommés) ;
+  elle passe en rouge au-delà de 90 %. Sans forfait, une phrase l'indique.
+- **Export CSV.** Généré dans le navigateur (séparateur « ; », encodage
+  UTF-8 avec BOM pour Excel) : date, canal, expéditeur, résultat, réponse
+  automatique.
+- **Détail des crédits par tâche.** L'ancienne page Utilisation reste
+  disponible dans un bloc repliable en bas de page.

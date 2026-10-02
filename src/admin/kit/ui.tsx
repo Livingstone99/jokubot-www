@@ -332,7 +332,7 @@ export function BarChart({
   data,
   label,
 }: {
-  data: Array<{ label: string; value: number }>;
+  data: Array<{ label: string; value: number; tick?: string }>;
   label: string;
 }) {
   const max = Math.max(1, ...data.map((d) => d.value));
@@ -351,21 +351,21 @@ export function BarChart({
     <figure className="kit-chart">
       <div className="kit-chart-bars" role="img" aria-label={label}>
         {data.map((d, i) => (
-          <div key={d.label} className="kit-chart-col">
+          <div key={i} className="kit-chart-col">
             <span
               className={i === peak ? "kit-chart-bar is-peak" : "kit-chart-bar"}
               style={{ height: `${Math.max(2, (d.value / max) * 100)}%` }}
               title={`${d.label} : ${d.value}`}
             />
             <span className="kit-chart-label" aria-hidden="true">
-              {d.label}
+              {d.tick ?? d.label}
             </span>
           </div>
         ))}
       </div>
       <ul className="sr-only">
-        {data.map((d) => (
-          <li key={d.label}>
+        {data.map((d, i) => (
+          <li key={i}>
             {d.label} : {d.value}
           </li>
         ))}

@@ -6958,3 +6958,135 @@ nav.subtabs {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* =====================================================================
+   Tâche 8 — Utilisation.
+   ===================================================================== */
+
+.usage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.usage-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.usage-card h2 {
+  margin: 0;
+  font-size: 16px;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.usage-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.usage-total {
+  font-variant-numeric: tabular-nums;
+}
+
+.usage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.split-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.split-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.split-label span:last-child {
+  color: var(--tx2);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg2);
+  overflow: hidden;
+}
+
+.meter.is-quota {
+  height: 12px;
+}
+
+.meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tx);
+  transition: width var(--t-fast) var(--ease-out);
+}
+
+.meter-fill.is-whatsapp {
+  background: var(--whatsapp);
+}
+
+.meter-fill.is-telegram {
+  background: var(--telegram);
+}
+
+.meter-fill.is-alert {
+  background: var(--rd);
+}
+
+.quota-figure {
+  margin: 0;
+  color: var(--tx2);
+}
+
+.quota-figure strong {
+  font-size: 28px;
+  color: var(--tx);
+  font-variant-numeric: tabular-nums;
+}
+
+.quota-figure strong.is-alert {
+  color: var(--rd);
+}
+
+.usage-legacy .page-head h1 {
+  font-size: 18px;
+}
+
+.usage-legacy .page-head .eyebrow,
+.usage-legacy .page-head .lede {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .usage-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .usage-head .secondary {
+    width: 100%;
+  }
+
+  .kit-chart-bars {
+    gap: 3px;
+  }
+}
