@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { api, type Trigger, type TriggerChannel, type TriggerInput } from "../api.js";
 import { useAuth } from "../auth.js";
@@ -26,6 +26,7 @@ import {
   Fab,
   Field,
   Loading,
+  Modal,
   PageTitle,
   Switch,
   useToast,
@@ -64,6 +65,10 @@ export function AutomationsPage() {
   const toast = useToast();
   const navigate = useNavigate();
   const [search] = useSearchParams();
+  const { id: editId } = useParams();
+  const { pathname } = useLocation();
+  // « /triggers/new » et « /triggers/:id/edit » ouvrent l'assistant en fenêtre au-dessus de la liste.
+  const wizardOpen = pathname.endsWith("/triggers/new") || Boolean(editId);
   const [items, setItems] = useState<Trigger[] | null>(null);
   const [error, setError] = useState(false);
   const [toDelete, setToDelete] = useState<Trigger | null>(null);
@@ -252,6 +257,15 @@ export function AutomationsPage() {
 
       <Fab label={t("jk.auto.create")} icon={IconPlus} onClick={() => navigate("/triggers/new")} />
 
+      {wizardOpen ? (
+        <AutomationWizard
+          key={editId ?? "new"}
+          ruleId={editId}
+          onClose={() => navigate("/triggers")}
+          onSaved={load}
+        />
+      ) : null}
+
       <ConfirmModal
         open={toDelete !== null}
         title={t("jk.auto.deleteTitle")}
@@ -274,11 +288,9 @@ type Form = { when: When; word: string; then: Then; reply: string; channel: Trig
 
 const EMPTY: Form = { when: "keyword", word: "", then: "reply", reply: "", channel: "both", name: "" };
 
-export function AutomationWizardPage() {
+function AutomationWizard({ ruleId: id, onClose, onSaved }: { ruleId?: string; onClose: () => void; onSaved: () => void }) {
   const t = useT();
   const toast = useToast();
-  const navigate = useNavigate();
-  const { id } = useParams();
   const { me } = useAuth();
   const [base, setBase] = useState<Trigger | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
@@ -294,7 +306,7 @@ export function AutomationWizardPage() {
       .then((res) => {
         const rule = res.items.find((r) => r.id === id);
         if (!rule) {
-          navigate("/triggers", { replace: true });
+          onClose();
           return;
         }
         setBase(rule);
@@ -309,7 +321,7 @@ export function AutomationWizardPage() {
       })
       .catch(() => toast({ text: t("jk.auto.error"), tone: "error" }))
       .finally(() => setLoading(false));
-  }, [id, navigate, t, toast]);
+  }, [id, onClose, t, toast]);
 
   const set = <K extends keyof Form>(key: K, value: Form[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -365,7 +377,8 @@ export function AutomationWizardPage() {
       if (base) await api.updateTrigger(base.id, input);
       else await api.createTrigger(input);
       toast({ text: base ? t("jk.auto.saved") : t("jk.auto.created") });
-      navigate("/triggers");
+      onSaved();
+      onClose();
     } catch {
       toast({ text: t("jk.auto.saveError"), tone: "error" });
     } finally {
@@ -373,145 +386,158 @@ export function AutomationWizardPage() {
     }
   }
 
-  if (loading) return <Loading rows={3} height={80} />;
-
   const preview = form.reply.trim() || t("jk.auto.previewEmpty");
 
   return (
-    <div className="jk-page jk-wizard">
-      <PageTitle title={base ? t("jk.auto.editTitle") : t("jk.auto.create")} subtitle={t("jk.auto.wizardSub")} />
-
-      <ol className="jk-steps" aria-label={t("jk.auto.steps")}>
-        {steps.map((label, index) => {
-          const n = index + 1;
-          return (
-            <li key={label} className={n === step ? "is-current" : n < step ? "is-done" : ""} aria-current={n === step ? "step" : undefined}>
-              <span className="jk-steps-num" aria-hidden="true">
-                {n < step ? <IconCheck size={14} /> : n}
-              </span>
-              <span className="jk-steps-label">{label}</span>
-            </li>
-          );
-        })}
-      </ol>
-
-      <div className="jk-card jk-wizard-card">
-        {step === 1 ? (
-          <fieldset className="jk-choices">
-            <legend>{t("jk.auto.q1")}</legend>
-            <Choice name="when" checked={form.when === "any"} onSelect={() => set("when", "any")} icon={IconMessage} title={t("jk.auto.o1a")} description={t("jk.auto.o1aD")} />
-            <Choice name="when" checked={form.when === "keyword"} onSelect={() => set("when", "keyword")} icon={IconTag} title={t("jk.auto.o1b")} description={t("jk.auto.o1bD")} />
-            <Choice name="when" checked={form.when === "code"} onSelect={() => set("when", "code")} icon={IconShieldCheck} title={t("jk.auto.o1c")} description={t("jk.auto.o1cD")} />
-            {form.when === "keyword" ? (
-              <Field label={t("jk.auto.word")} hint={t("jk.auto.wordHint")} error={errors.word}>
-                <input value={form.word} placeholder={t("jk.auto.wordPh")} onChange={(event) => set("word", event.target.value)} />
-              </Field>
-            ) : null}
-          </fieldset>
-        ) : null}
-
-        {step === 2 ? (
-          <fieldset className="jk-choices">
-            <legend>{t("jk.auto.q2")}</legend>
-            <Choice name="then" checked={form.then === "reply"} onSelect={() => set("then", "reply")} icon={IconMessage} title={t("jk.auto.o2a")} description={t("jk.auto.o2aD")} />
-            <Choice name="then" checked={form.then === "verify"} onSelect={() => set("then", "verify")} icon={IconShieldCheck} title={t("jk.auto.o2b")} description={t("jk.auto.o2bD")} />
-            <Choice name="then" checked={form.then === "software"} onSelect={() => set("then", "software")} icon={IconCode} title={t("jk.auto.o2c")} description={me?.tenant.webhookUrl ? t("jk.auto.o2cD") : t("jk.auto.o2cNone")} />
-          </fieldset>
-        ) : null}
-
-        {step === 3 ? (
-          <div className="jk-choices">
-            {form.then === "reply" ? (
-              <>
-                <h2 className="jk-wizard-q">{t("jk.auto.q3")}</h2>
-                <Field label={t("jk.auto.reply")} hint={t("jk.auto.replyHint")} error={errors.reply}>
-                  <textarea rows={5} value={form.reply} placeholder={t("jk.auto.replyPh")} onChange={(event) => set("reply", event.target.value)} />
-                </Field>
-                <div className="jk-preview" aria-label={t("jk.auto.preview")}>
-                  <span className="jk-auto-label">{t("jk.auto.preview")}</span>
-                  <div className="jk-bubble">
-                    <p>{form.when === "keyword" && form.word ? form.word : t("jk.auto.sample")}</p>
-                  </div>
-                  <div className="jk-bubble is-out">
-                    <p>{preview.replaceAll("{{name}}", "Awa")}</p>
-                  </div>
-                </div>
-              </>
+    <Modal
+      open
+      size="lg"
+      title={base ? t("jk.auto.editTitle") : t("jk.auto.create")}
+      onClose={onClose}
+      // Un clic à côté ou Échap ne fait pas perdre ce qui a été saisi.
+      dismissible={false}
+      footer={
+        loading ? undefined : (
+          <>
+            {step > 1 ? (
+              <button type="button" className="jk-btn is-secondary" onClick={() => setStep((s) => s - 1)}>
+                {t("jk.back")}
+              </button>
             ) : (
-              <>
-                <h2 className="jk-wizard-q">{t("jk.auto.q3other")}</h2>
-                <p className="jk-muted">{form.then === "verify" ? t("jk.auto.verifyInfo") : t("jk.auto.softwareInfo")}</p>
-              </>
+              <button type="button" className="jk-btn is-secondary" onClick={onClose}>
+                {t("jk.cancel")}
+              </button>
             )}
-            <fieldset className="jk-choices">
-              <legend className="jk-legend-small">{t("jk.auto.channel")}</legend>
-              <div className="jk-seg">
-                {(["both", "whatsapp", "telegram"] as TriggerChannel[]).map((value) => (
-                  <label key={value} className={form.channel === value ? "jk-seg-item is-on" : "jk-seg-item"}>
-                    <input type="radio" name="channel" checked={form.channel === value} onChange={() => set("channel", value)} />
-                    {channelText(t, value)}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          </div>
-        ) : null}
+            {step < 4 ? (
+              <button type="button" className="jk-btn is-primary" onClick={next}>
+                {t("jk.next")}
+              </button>
+            ) : (
+              <button type="button" className="jk-btn is-primary" disabled={busy} onClick={() => void onSave()}>
+                {busy ? t("jk.saving") : base ? t("jk.save") : t("jk.auto.createBtn")}
+              </button>
+            )}
+          </>
+        )
+      }
+    >
+      {loading ? (
+        <Loading rows={3} height={80} />
+      ) : (
+        <div className="jk-wizard">
+          <p className="jk-muted">{t("jk.auto.wizardSub")}</p>
+          <ol className="jk-steps" aria-label={t("jk.auto.steps")}>
+            {steps.map((label, index) => {
+              const n = index + 1;
+              return (
+                <li key={label} className={n === step ? "is-current" : n < step ? "is-done" : ""} aria-current={n === step ? "step" : undefined}>
+                  <span className="jk-steps-num" aria-hidden="true">
+                    {n < step ? <IconCheck size={14} /> : n}
+                  </span>
+                  <span className="jk-steps-label">{label}</span>
+                </li>
+              );
+            })}
+          </ol>
 
-        {step === 4 ? (
-          <div className="jk-choices">
-            <h2 className="jk-wizard-q">{t("jk.auto.q4")}</h2>
-            <dl className="jk-summary">
-              <div>
-                <dt>{t("jk.auto.when")}</dt>
-                <dd>{whenText(t, { matchType: form.when === "keyword" ? "keyword" : form.when === "code" ? "verification_token" : "any", matchValue: form.word })}</dd>
-              </div>
-              <div>
-                <dt>{t("jk.auto.then")}</dt>
-                <dd>
-                  {form.then === "reply" ? (
-                    <>
-                      {t("jk.auto.replyWith")}
-                      <blockquote className="jk-quote">{truncate(form.reply, 300)}</blockquote>
-                    </>
-                  ) : form.then === "verify" ? (
-                    t("jk.auto.thenVerify")
-                  ) : (
-                    t("jk.auto.thenSoftware")
-                  )}
-                </dd>
-              </div>
-              <div>
-                <dt>{t("jk.auto.channel")}</dt>
-                <dd>{channelText(t, form.channel)}</dd>
-              </div>
-            </dl>
-            <Field label={t("jk.auto.name")} hint={t("jk.auto.nameHint")}>
-              <input value={form.name} placeholder={suggested} onChange={(event) => set("name", event.target.value)} />
-            </Field>
-          </div>
-        ) : null}
+          <div className="jk-wizard-card">
+            {step === 1 ? (
+              <fieldset className="jk-choices">
+                <legend>{t("jk.auto.q1")}</legend>
+                <Choice name="when" checked={form.when === "any"} onSelect={() => set("when", "any")} icon={IconMessage} title={t("jk.auto.o1a")} description={t("jk.auto.o1aD")} />
+                <Choice name="when" checked={form.when === "keyword"} onSelect={() => set("when", "keyword")} icon={IconTag} title={t("jk.auto.o1b")} description={t("jk.auto.o1bD")} />
+                <Choice name="when" checked={form.when === "code"} onSelect={() => set("when", "code")} icon={IconShieldCheck} title={t("jk.auto.o1c")} description={t("jk.auto.o1cD")} />
+                {form.when === "keyword" ? (
+                  <Field label={t("jk.auto.word")} hint={t("jk.auto.wordHint")} error={errors.word}>
+                    <input value={form.word} placeholder={t("jk.auto.wordPh")} onChange={(event) => set("word", event.target.value)} />
+                  </Field>
+                ) : null}
+              </fieldset>
+            ) : null}
 
-        <div className="jk-wizard-nav">
-          {step > 1 ? (
-            <button type="button" className="jk-btn is-secondary" onClick={() => setStep((s) => s - 1)}>
-              {t("jk.back")}
-            </button>
-          ) : (
-            <Link className="jk-btn is-secondary" to="/triggers">
-              {t("jk.cancel")}
-            </Link>
-          )}
-          {step < 4 ? (
-            <button type="button" className="jk-btn is-primary" onClick={next}>
-              {t("jk.next")}
-            </button>
-          ) : (
-            <button type="button" className="jk-btn is-primary" disabled={busy} onClick={() => void onSave()}>
-              {busy ? t("jk.saving") : base ? t("jk.save") : t("jk.auto.createBtn")}
-            </button>
-          )}
+            {step === 2 ? (
+              <fieldset className="jk-choices">
+                <legend>{t("jk.auto.q2")}</legend>
+                <Choice name="then" checked={form.then === "reply"} onSelect={() => set("then", "reply")} icon={IconMessage} title={t("jk.auto.o2a")} description={t("jk.auto.o2aD")} />
+                <Choice name="then" checked={form.then === "verify"} onSelect={() => set("then", "verify")} icon={IconShieldCheck} title={t("jk.auto.o2b")} description={t("jk.auto.o2bD")} />
+                <Choice name="then" checked={form.then === "software"} onSelect={() => set("then", "software")} icon={IconCode} title={t("jk.auto.o2c")} description={me?.tenant.webhookUrl ? t("jk.auto.o2cD") : t("jk.auto.o2cNone")} />
+              </fieldset>
+            ) : null}
+
+            {step === 3 ? (
+              <div className="jk-choices">
+                {form.then === "reply" ? (
+                  <>
+                    <h2 className="jk-wizard-q">{t("jk.auto.q3")}</h2>
+                    <Field label={t("jk.auto.reply")} hint={t("jk.auto.replyHint")} error={errors.reply}>
+                      <textarea rows={5} value={form.reply} placeholder={t("jk.auto.replyPh")} onChange={(event) => set("reply", event.target.value)} />
+                    </Field>
+                    <div className="jk-preview" aria-label={t("jk.auto.preview")}>
+                      <span className="jk-auto-label">{t("jk.auto.preview")}</span>
+                      <div className="jk-bubble">
+                        <p>{form.when === "keyword" && form.word ? form.word : t("jk.auto.sample")}</p>
+                      </div>
+                      <div className="jk-bubble is-out">
+                        <p>{preview.replaceAll("{{name}}", "Awa")}</p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="jk-wizard-q">{t("jk.auto.q3other")}</h2>
+                    <p className="jk-muted">{form.then === "verify" ? t("jk.auto.verifyInfo") : t("jk.auto.softwareInfo")}</p>
+                  </>
+                )}
+                <fieldset className="jk-choices">
+                  <legend className="jk-legend-small">{t("jk.auto.channel")}</legend>
+                  <div className="jk-seg">
+                    {(["both", "whatsapp", "telegram"] as TriggerChannel[]).map((value) => (
+                      <label key={value} className={form.channel === value ? "jk-seg-item is-on" : "jk-seg-item"}>
+                        <input type="radio" name="channel" checked={form.channel === value} onChange={() => set("channel", value)} />
+                        {channelText(t, value)}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </div>
+            ) : null}
+
+            {step === 4 ? (
+              <div className="jk-choices">
+                <h2 className="jk-wizard-q">{t("jk.auto.q4")}</h2>
+                <dl className="jk-summary">
+                  <div>
+                    <dt>{t("jk.auto.when")}</dt>
+                    <dd>{whenText(t, { matchType: form.when === "keyword" ? "keyword" : form.when === "code" ? "verification_token" : "any", matchValue: form.word })}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("jk.auto.then")}</dt>
+                    <dd>
+                      {form.then === "reply" ? (
+                        <>
+                          {t("jk.auto.replyWith")}
+                          <blockquote className="jk-quote">{truncate(form.reply, 300)}</blockquote>
+                        </>
+                      ) : form.then === "verify" ? (
+                        t("jk.auto.thenVerify")
+                      ) : (
+                        t("jk.auto.thenSoftware")
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t("jk.auto.channel")}</dt>
+                    <dd>{channelText(t, form.channel)}</dd>
+                  </div>
+                </dl>
+                <Field label={t("jk.auto.name")} hint={t("jk.auto.nameHint")}>
+                  <input value={form.name} placeholder={suggested} onChange={(event) => set("name", event.target.value)} />
+                </Field>
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }

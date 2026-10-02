@@ -3231,3 +3231,19 @@ a.jk-row:hover {
     font-size: 16px;
   }
 }
+
+/* ---------- Assistant d'automatisation dans une fenêtre ---------- */
+.jk-modal .jk-wizard {
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.jk-modal .jk-wizard > .jk-muted {
+  margin: 0;
+}
+
+.jk-modal .jk-wizard-card {
+  padding: 0;
+}

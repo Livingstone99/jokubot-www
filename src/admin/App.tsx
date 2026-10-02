@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth.js";
 import { AppShell } from "./layout/AppShell.js";
 import { ActivityFeedPage } from "./pages/ActivityFeed.js";
-import { AutomationWizardPage, AutomationsPage } from "./pages/Automations.js";
+import { AutomationsPage } from "./pages/Automations.js";
 import { ChannelsPage } from "./pages/Channels.js";
 import { ConversationsPage } from "./pages/Conversations.js";
 import { MorePage } from "./pages/More.js";
@@ -84,8 +84,8 @@ export function App() {
               <Route path="sessions" element={<ConversationsPage />} />
               <Route path="sessions/:channel/:sender" element={<ConversationsPage />} />
               <Route path="triggers" element={<AutomationsPage />} />
-              <Route path="triggers/new" element={<AutomationWizardPage />} />
-              <Route path="triggers/:id/edit" element={<AutomationWizardPage />} />
+              <Route path="triggers/new" element={<AutomationsPage />} />
+              <Route path="triggers/:id/edit" element={<AutomationsPage />} />
               <Route path="triggers/advanced" element={<TriggersPage />} />
               <Route path="reactions" element={<ReactionsPage />} />
               <Route path="setup" element={<SetupPage />} />
