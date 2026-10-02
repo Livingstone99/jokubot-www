@@ -1440,6 +1440,11 @@ a.jk-row:hover {
     padding: 0;
   }
 
+  /* Tablette (menu en icônes) : le « + » n'a pas la place. */
+  .jk-sidebar .jk-nav-add {
+    display: none;
+  }
+
   .jk-brand {
     padding: 0;
   }
@@ -3246,4 +3251,101 @@ a.jk-row:hover {
 
 .jk-modal .jk-wizard-card {
   padding: 0;
+}
+
+/* ---------- « + » dans le menu (Canaux) ---------- */
+.jk-nav-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.jk-nav-row > .jk-nav-item {
+  flex: 1;
+  min-width: 0;
+  padding-right: 44px;
+}
+
+.jk-nav-add {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--jk-red);
+  background: var(--jk-red-soft);
+  text-decoration: none;
+  transition: background-color 160ms var(--jk-ease), color 160ms var(--jk-ease);
+}
+
+.jk-nav-add:hover,
+.jk-nav-add:focus-visible {
+  background: var(--jk-red);
+  color: #fff;
+}
+
+.jk-nav-row > .jk-nav-item.is-active + .jk-nav-add {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--jk-on-strong);
+}
+
+/* ---------- Fenêtre « Ajouter un réseau » ---------- */
+.jk-network-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.jk-network {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  color: var(--jk-ink);
+  font: inherit;
+  text-align: left;
+  background: var(--jk-surface);
+  border: 1px solid var(--jk-line);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 160ms var(--jk-ease), background-color 160ms var(--jk-ease);
+}
+
+.jk-network:hover,
+.jk-network:focus-visible {
+  border-color: var(--jk-red);
+  background: var(--jk-red-soft);
+  outline: none;
+}
+
+.jk-network img {
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.jk-network-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jk-network-text span {
+  color: var(--jk-ink-3);
+  font-size: 14px;
+}
+
+.jk-network > svg {
+  flex-shrink: 0;
+  color: var(--jk-ink-3);
 }

@@ -18,6 +18,7 @@ import {
   IconLogout,
   IconMenu,
   IconMore,
+  IconPlus,
   IconSettings,
   IconSparkles,
   IconTag,
@@ -31,13 +32,14 @@ import { useTheme } from "../theme.js";
 import { formatWhen, senderLabel } from "../ui.js";
 import { activityLabel } from "../pages/ActivityFeed.js";
 
-type NavItem = { to: string; label: MessageKey; icon: IconComponent; end?: boolean };
+/** add : petit bouton « + » à droite de l'entrée du menu. */
+type NavItem = { to: string; label: MessageKey; icon: IconComponent; end?: boolean; add?: { to: string; label: MessageKey } };
 
 /** Menu principal : les mots d'un commerçant, pas ceux d'un développeur. */
 export const MAIN_NAV: NavItem[] = [
   { to: "/overview", label: "jk.nav.dashboard", icon: IconHome, end: true },
   { to: "/triggers", label: "jk.nav.automations", icon: IconBot },
-  { to: "/channels", label: "jk.nav.channels", icon: IconLink },
+  { to: "/channels", label: "jk.nav.channels", icon: IconLink, add: { to: "/channels?add=1", label: "jk.ch.add" } },
   { to: "/activity", label: "jk.nav.activity", icon: IconActivity },
   { to: "/usage", label: "jk.nav.usage", icon: IconCard },
   { to: "/settings", label: "jk.nav.settings", icon: IconSettings },
@@ -217,7 +219,7 @@ function NavList({ items }: { items: NavItem[] }) {
     <nav className="jk-nav" aria-label={t("jk.menu")}>
       {items.map((item) => {
         const Icon = item.icon;
-        return (
+        const link = (
           <NavLink
             key={item.to}
             to={item.to}
@@ -228,6 +230,15 @@ function NavList({ items }: { items: NavItem[] }) {
             <Icon size={20} />
             <span>{t(item.label)}</span>
           </NavLink>
+        );
+        if (!item.add) return link;
+        return (
+          <div key={item.to} className="jk-nav-row">
+            {link}
+            <Link className="jk-nav-add" to={item.add.to} title={t(item.add.label)} aria-label={t(item.add.label)}>
+              <IconPlus size={16} />
+            </Link>
+          </div>
         );
       })}
     </nav>

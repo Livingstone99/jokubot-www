@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { api, type WhatsAppPair } from "../api.js";
 import { useAuth } from "../auth.js";
 import { describeChannel } from "../ChannelLink.js";
-import { IconEye, IconEyeOff, IconQrCode, IconRefresh, IconTelegram, IconWhatsApp } from "../jk/icons.js";
-import { Badge, Card, ConfirmModal, Field, Modal, PageTitle, useToast, type BadgeTone } from "../jk/ui.js";
+import { IconChevronRight, IconEye, IconEyeOff, IconPlus, IconQrCode, IconRefresh, IconTelegram, IconWhatsApp } from "../jk/icons.js";
+import { Badge, Card, ConfirmModal, Fab, Field, Modal, PageTitle, useToast, type BadgeTone } from "../jk/ui.js";
 import { useT } from "../locale.js";
 import { WhatsAppNumberField } from "../WhatsAppNumberField.js";
 
@@ -17,7 +18,7 @@ function toneOf(status: string): BadgeTone {
 }
 
 /** Les deux grandes cartes de canaux, utilisées sur le tableau de bord et la page Canaux. */
-export function ChannelCards() {
+export function ChannelCards({ adding = false, onAddingChange }: { adding?: boolean; onAddingChange?: (open: boolean) => void } = {}) {
   const t = useT();
   const { me } = useAuth();
   const [connect, setConnect] = useState<Channel | null>(null);
@@ -68,10 +69,48 @@ export function ChannelCards() {
           );
         })}
       </div>
+      <AddNetwork
+        open={adding}
+        onClose={() => onAddingChange?.(false)}
+        onPick={(id) => {
+          onAddingChange?.(false);
+          setConnect(id);
+        }}
+      />
       <ConnectWhatsApp open={connect === "whatsapp"} onClose={() => setConnect(null)} />
       <ConnectTelegram open={connect === "telegram"} onClose={() => setConnect(null)} />
       <ManageChannel channel={manage} onClose={() => setManage(null)} onReplace={(id) => { setManage(null); setConnect(id); }} />
     </>
+  );
+}
+
+/* ---------- Ajouter un réseau : choix du réseau, puis sa connexion ---------- */
+
+function AddNetwork({ open, onClose, onPick }: { open: boolean; onClose: () => void; onPick: (id: Channel) => void }) {
+  const t = useT();
+  const { me } = useAuth();
+  const networks: Array<{ id: Channel; name: string; linked: boolean }> = [
+    { id: "whatsapp", name: "WhatsApp", linked: Boolean(me?.tenant.whatsappLinked) },
+    { id: "telegram", name: "Telegram", linked: Boolean(me?.tenant.telegramLinked) },
+  ];
+  return (
+    <Modal open={open} title={t("jk.ch.add")} onClose={onClose}>
+      <p className="jk-muted">{t("jk.ch.addIntro")}</p>
+      <ul className="jk-network-list">
+        {networks.map((n) => (
+          <li key={n.id}>
+            <button type="button" className="jk-network" onClick={() => onPick(n.id)}>
+              <img src={`${import.meta.env.BASE_URL}channels/${n.id}.jpg`} alt="" width={40} height={40} />
+              <span className="jk-network-text">
+                <strong>{n.name}</strong>
+                <span>{n.linked ? t("jk.ch.addLinked") : t("jk.ch.addNotLinked")}</span>
+              </span>
+              <IconChevronRight size={18} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Modal>
   );
 }
 
@@ -375,10 +414,24 @@ function ManageChannel({
 
 export function ChannelsPage() {
   const t = useT();
+  const [search, setSearch] = useSearchParams();
+  // « + » du menu Canaux : /channels?add=1 ouvre directement le choix du réseau.
+  const adding = search.get("add") === "1";
+  const setAdding = (open: boolean) => setSearch(open ? { add: "1" } : {}, { replace: true });
   return (
     <div className="jk-page">
-      <PageTitle title={t("jk.ch.title")} subtitle={t("jk.ch.subtitle")} />
-      <ChannelCards />
+      <PageTitle
+        title={t("jk.ch.title")}
+        subtitle={t("jk.ch.subtitle")}
+        actions={
+          <button type="button" className="jk-btn is-primary is-hide-mobile" onClick={() => setAdding(true)}>
+            <IconPlus size={18} />
+            {t("jk.ch.add")}
+          </button>
+        }
+      />
+      <ChannelCards adding={adding} onAddingChange={setAdding} />
+      <Fab label={t("jk.ch.add")} icon={IconPlus} onClick={() => setAdding(true)} />
       <Card title={t("jk.ch.howTitle")}>
         <ul className="jk-bullets">
           <li>{t("jk.ch.how1")}</li>

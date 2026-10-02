@@ -1753,6 +1753,10 @@ const en = {
   "lit.triggers.wFile": "file",
   "lit.triggers.wOr": "{first} or {last}",
   "lit.developers.sendAs": "and send it as",
+  "jk.ch.add": "Add a network",
+  "jk.ch.addIntro": "Choose the network to connect to JokuBot.",
+  "jk.ch.addLinked": "Connected · choose to use another account",
+  "jk.ch.addNotLinked": "Not connected yet",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -3538,6 +3542,10 @@ const fr: Record<MessageKey, string> = {
   "lit.triggers.wFile": "fichier",
   "lit.triggers.wOr": "{first} ou {last}",
   "lit.developers.sendAs": "et envoyez-la comme",
+  "jk.ch.add": "Ajouter un réseau",
+  "jk.ch.addIntro": "Choisissez le réseau à connecter à JokuBot.",
+  "jk.ch.addLinked": "Connecté · choisir pour utiliser un autre compte",
+  "jk.ch.addNotLinked": "Pas encore connecté",
 };
 
 const catalogs: Record<Locale, Record<MessageKey, string>> = { en, fr };
