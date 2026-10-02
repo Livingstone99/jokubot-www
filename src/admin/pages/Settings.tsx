@@ -194,8 +194,8 @@ export function SettingsPage() {
         <article className="panel">
           <header className="panel-head">
             <div>
-              <h2>Appearance</h2>
-              <p className="hint">Light or dark. Saved on this device.</p>
+              <h2>{t("settings.appearance")}</h2>
+              <p className="hint">{t("theme.hint")}</p>
             </div>
           </header>
           <div className="theme-choices">
@@ -205,7 +205,7 @@ export function SettingsPage() {
               aria-pressed={theme === "light"}
               onClick={() => setTheme("light")}
             >
-              Light
+              {t("theme.light")}
             </button>
             <button
               type="button"
@@ -213,7 +213,7 @@ export function SettingsPage() {
               aria-pressed={theme === "dark"}
               onClick={() => setTheme("dark")}
             >
-              Dark
+              {t("theme.dark")}
             </button>
           </div>
         </article>
@@ -236,10 +236,9 @@ export function SettingsPage() {
         <article className="panel">
           <header className="panel-head">
             <div>
-              <h2>Channels</h2>
+              <h2>{t("settings.channels")}</h2>
               <p className="hint">
-                Customers send a verification code from these apps. You only
-                need one to start.
+                {t("settings.channelsHint")}
               </p>
             </div>
           </header>
@@ -247,7 +246,7 @@ export function SettingsPage() {
             <div className={channelBlockClass(whatsapp.status)}>
               <div className="channel-block-head">
                 <div>
-                  <strong>WhatsApp</strong>
+                  <strong>{t("common.whatsapp")}</strong>
                   <span className={channelStatusClass(whatsapp.status)}>
                     <ChannelStatusMark status={whatsapp.status} />
                     {whatsapp.label}
@@ -270,25 +269,24 @@ export function SettingsPage() {
                     whatsapp.status === "connected" ||
                     whatsapp.status === "reconnecting" ||
                     whatsapp.status === "paused"
-                      ? "Change this only if you need to link a different number from Home."
-                      : "WhatsApp is connected only after you link the number on your phone."
+                      ? t("settings.waHintLinked")
+                      : t("settings.waHintSetup")
                   }
                 />
                 {whatsapp.status === "connected" ||
                 whatsapp.status === "reconnecting" ||
                 whatsapp.status === "paused" ? (
                   <p className="hint">
-                    This number is already linked. Save a different number, then
-                    finish pairing from Home.
+                    {t("settings.waKeep")}
                   </p>
                 ) : (
                   <aside className="connect-howto">
-                    <p className="connect-howto-title">What to do</p>
+                    <p className="connect-howto-title">{t("settings.howto")}</p>
                     <ol>
-                      <li>Select the country, then enter the WhatsApp number.</li>
-                      <li>Save, then finish linking from Home.</li>
-                      <li>On your phone: WhatsApp → Settings → Linked devices.</li>
-                      <li>Scan the QR or enter the pairing code.</li>
+                      <li>{t("settings.waStep1")}</li>
+                      <li>{t("settings.waStep2")}</li>
+                      <li>{t("settings.waStep3")}</li>
+                      <li>{t("settings.waStep4")}</li>
                     </ol>
                   </aside>
                 )}
@@ -297,7 +295,7 @@ export function SettingsPage() {
             <div className={channelBlockClass(telegram.status)}>
               <div className="channel-block-head">
                 <div>
-                  <strong>Telegram</strong>
+                  <strong>{t("common.telegram")}</strong>
                   <span className={channelStatusClass(telegram.status)}>
                     <ChannelStatusMark status={telegram.status} />
                     {telegram.label}
@@ -313,7 +311,7 @@ export function SettingsPage() {
               <ChannelLinkControls channel="telegram" />
               <div className="connect-tile-split">
                 <label>
-                  Bot token
+                  {t("settings.botToken")}
                   <input
                     value={telegramToken}
                     onChange={(event) => setTelegramToken(event.target.value)}
@@ -332,17 +330,16 @@ export function SettingsPage() {
                 </label>
                 {telegram.status === "connected" || telegram.status === "degraded" ? (
                   <p className="hint">
-                    Inbound messages already go to this bot. Leave the token
-                    blank to keep the current connection.
+                    {t("settings.tgKeep")}
                   </p>
                 ) : (
                   <aside className="connect-howto">
-                    <p className="connect-howto-title">What to do</p>
+                    <p className="connect-howto-title">{t("settings.howto")}</p>
                     <ol>
-                      <li>Open Telegram and message BotFather.</li>
-                      <li>Create a bot with /newbot, or use an existing one.</li>
-                      <li>Copy the bot token BotFather shows you.</li>
-                      <li>Paste the token here and save.</li>
+                      <li>{t("settings.tgStep1")}</li>
+                      <li>{t("settings.tgStep2")}</li>
+                      <li>{t("settings.tgStep3")}</li>
+                      <li>{t("settings.tgStep4")}</li>
                     </ol>
                   </aside>
                 )}
@@ -351,15 +348,13 @@ export function SettingsPage() {
           </div>
           {whatsapp.status === "pending" ? (
             <p className="banner banner-warn">
-              This WhatsApp number is saved but not linked yet.{" "}
-              <Link to="/overview">Finish linking from Home</Link> with the QR or
-              pairing code on your phone.
+              {t("lit.settings.42")}{" "}
+              <Link to="/overview">{t("settings.finishHome")}</Link>{' '}{t("lit.settings.43")}
             </p>
           ) : null}
           {telegram.status === "pending" ? (
             <p className="banner banner-warn">
-              Telegram needs a bot token from BotFather, not only a username.
-              Paste the token above or on Home.
+              {t("settings.tgBanner")}
             </p>
           ) : null}
         </article>
@@ -421,16 +416,14 @@ export function SettingsPage() {
         <article className="panel">
           <header className="panel-head">
             <div>
-              <h2>Completion webhook</h2>
+              <h2>{t("overview.webhookName")}</h2>
               <p className="hint">
-                Signed <code>verification.completed</code> when a code is
-                claimed, and <code>message.received</code> when a trigger
-                matches. Trust this, not the browser websocket.
+                {t("lit.settings.44")}{' '}<code>verification.completed</code>{' '}{t("lit.settings.45")}{' '}<code>message.received</code>{' '}{t("lit.settings.46")}
               </p>
             </div>
           </header>
           <label>
-            Webhook URL
+            {t("settings.webhookUrl")}
             <input
               value={webhookUrl}
               onChange={(event) => setWebhookUrl(event.target.value)}
@@ -440,13 +433,13 @@ export function SettingsPage() {
           {webhookSecret ? (
             <p className="secret">
               <span>
-                Webhook secret (shown once): <code>{webhookSecret}</code>
+                {t("settings.webhookSecretOnce")}{' '}<code>{webhookSecret}</code>
               </span>
             </p>
           ) : me?.tenant.hasWebhookSecret ? (
-            <p className="hint">A webhook secret is already stored. Saving a new URL will not rotate it.</p>
+            <p className="hint">{t("settings.webhookSecretStored")}</p>
           ) : (
-            <p className="hint">A secret is generated the first time you save a URL.</p>
+            <p className="hint">{t("settings.webhookSecretNew")}</p>
           )}
           {me?.tenant.webhookUrl ? (
             <div className="panel-actions">
@@ -456,7 +449,7 @@ export function SettingsPage() {
                 disabled={testBusy || busy}
                 onClick={() => void onTestWebhook()}
               >
-                {testBusy ? "Sending…" : "Send test event"}
+                {testBusy ? "Sending…" : t("settings.sendTest")}
               </button>
             </div>
           ) : null}
@@ -557,10 +550,10 @@ export function SettingsPage() {
             {error}
           </p>
         ) : null}
-        {saved ? <p className="ok">Saved.</p> : null}
+        {saved ? <p className="ok">{t("settings.saved")}</p> : null}
         <div>
           <button type="submit" className="primary" disabled={busy}>
-            {busy ? "Saving…" : "Save settings"}
+            {busy ? "Saving…" : t("settings.save")}
           </button>
         </div>
       </form>

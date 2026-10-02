@@ -13,6 +13,8 @@ import {
   formatWhen,
 } from "../ui.js";
 
+type Translate = ReturnType<typeof useT>;
+
 type SimStatus = "waiting" | "verified" | "expired" | "error";
 
 export function DevelopersPage() {
@@ -128,7 +130,7 @@ export function DevelopersPage() {
       setApiKey(result.apiKey);
       sessionStorage.setItem("mvs.apiKey", result.apiKey);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not rotate API key.");
+      setError(err instanceof Error ? err.message : t("dev.rotateApiError"));
     }
   }
 
@@ -139,7 +141,7 @@ export function DevelopersPage() {
       setIngestSecret(result.ingestSecret);
       sessionStorage.setItem("mvs.ingestSecret", result.ingestSecret);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not rotate ingest secret.");
+      setError(err instanceof Error ? err.message : t("dev.rotateIngestError"));
     }
   }
 
@@ -150,7 +152,7 @@ export function DevelopersPage() {
       setMintSecret(result.mintSecret);
       sessionStorage.setItem("mvs.mintSecret", result.mintSecret);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not rotate mint secret.");
+      setError(err instanceof Error ? err.message : t("dev.rotateMintError"));
     }
   }
 
@@ -183,7 +185,7 @@ export function DevelopersPage() {
   const ingestUrl = `${import.meta.env.DEV ? "http://127.0.0.1:8080" : window.location.origin}/v1/ingest/messages`;
   const ingestEnv = `INGEST_URL=${ingestUrl}
 TENANT_ID=${me?.tenant.id ?? ""}
-INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
+INGEST_SECRET=${ingestSecret ?? t("dev.rotateReveal")}`;
   const channelReady = simChannel === "whatsapp" ? whatsappReady : telegramReady;
   const hasChannelSetup = whatsappReady || telegramReady;
   const boundWhatsApp = me?.tenant.whatsappNumber ?? null;
@@ -197,11 +199,10 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
     <section className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Developers</p>
-          <h1>Keys and inbound ingest</h1>
+          <p className="eyebrow">{t("nav.developers")}</p>
+          <h1>{t("dev.title")}</h1>
           <p className="lede">
-            Keep the API key and mint secret on your server. The ingest secret
-            stays on the machine that receives WhatsApp and Telegram messages.
+            {t("dev.lede")}
           </p>
         </div>
         <div className="page-actions">
@@ -219,23 +220,21 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
       <form className="panel" onSubmit={(event) => void onSimulate(event)}>
         <header className="panel-head">
           <div>
-            <h2>Simulate verification</h2>
+            <h2>{t("lit.developers.1")}</h2>
             <p className="hint">
-              Generate an encrypted code bound to the sender’s WhatsApp number,
-              then send it to the inbox bound on this workspace. Another number
-              cannot claim it. A used code is no longer valid.
+              {t("lit.developers.2")}
             </p>
           </div>
         </header>
         {!hasChannelSetup ? (
           <p className="banner banner-warn">
-            Connect WhatsApp or Telegram on <Link to="/overview">Home</Link>{" "}
-            before simulating. The code has to land on the linked inbox.
+            {t("lit.developers.3")}{' '}<Link to="/overview">{t("common.home")}</Link>{" "}
+            {t("lit.developers.4")}
           </p>
         ) : null}
         <div className="row">
           <label>
-            Channel
+            {t("common.channel")}
             <select
               value={simChannel}
               onChange={(event) =>
@@ -243,15 +242,15 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
               }
             >
               <option value="whatsapp" disabled={!whatsappReady}>
-                WhatsApp
+                {t("common.whatsapp")}
               </option>
               <option value="telegram" disabled={!telegramReady}>
-                Telegram
+                {t("common.telegram")}
               </option>
             </select>
           </label>
           <label>
-            Purpose
+            {t("purposes.field")}
             <select
               value={simPurpose}
               onChange={(event) => setSimPurpose(event.target.value)}
@@ -267,38 +266,36 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
               )}
             </select>
             <span className="hint">
-              Sealed in the code. Status checks use this slug. Manage on{" "}
-              <Link to="/purposes">Purposes</Link>.
+              {t("lit.developers.5")}{" "}
+              <Link to="/purposes">{t("nav.purposes")}</Link>.
             </span>
           </label>
         </div>
         {simChannel === "whatsapp" ? (
           <WhatsAppNumberField
-            label="Sender number"
+            label={t("triggers.senderNumber")}
             value={simSender}
             preferredCountry={me?.tenant.country}
             required
             onChange={setSimSender}
-            hint="Only this WhatsApp number can complete the code."
+            hint={t("lit.developers.6")}
           />
         ) : null}
         {simChannel === "whatsapp" && whatsappReady && boundWhatsApp ? (
           <p className="hint">
-            Send the encrypted code to <code>{boundWhatsApp}</code>, from the
-            sender number above.
+            {t("lit.developers.7")}{' '}<code>{boundWhatsApp}</code>{t("lit.developers.8")}
           </p>
         ) : null}
         {simChannel === "telegram" && telegramReady && boundTelegram ? (
           <p className="hint">
-            Send the encrypted code to <code>{boundTelegram}</code>, the
-            Telegram bot bound on this workspace.
+            {t("lit.developers.7")}{' '}<code>{boundTelegram}</code>{t("lit.developers.9")}
           </p>
         ) : null}
         {!channelReady && hasChannelSetup ? (
           <p className="banner banner-warn">
             {simChannel === "whatsapp"
-              ? "Link WhatsApp on Home before generating a WhatsApp code."
-              : "Connect Telegram on Home before generating a Telegram code."}
+              ? t("lit.developers.10")
+              : t("lit.developers.11")}
           </p>
         ) : null}
         {simError ? (
@@ -316,7 +313,7 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
               (simChannel === "whatsapp" && !simSender)
             }
           >
-            {simBusy ? "Generating…" : "Generate encrypted code"}
+            {simBusy ? "Generating…" : t("lit.developers.12")}
           </button>
         </div>
       </form>
@@ -340,35 +337,31 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
               }
             >
               <span className="live-dot" aria-hidden="true" />
-              <strong>{liveSimulationLabel(status, result)}</strong>
+              <strong>{liveSimulationLabel(status, result, t)}</strong>
             </div>
             <p className="hint">
               {active.channel === "telegram" ? (
                 sendTo ? (
                   <>
-                    Send this encrypted code as a Telegram message to{" "}
-                    <code>{sendTo}</code>. That is the bot bound on this
-                    workspace.
+                    {t("lit.developers.13")}{" "}
+                    <code>{sendTo}</code>{t("lit.developers.14")}
                   </>
                 ) : (
                   <>
-                    Send this encrypted code as a Telegram message to the bot
-                    bound on this workspace.
+                    {t("lit.developers.15")}
                   </>
                 )
               ) : sendTo ? (
                 <>
-                  Send this encrypted code as a WhatsApp message to{" "}
-                  <code>{sendTo}</code>. That is the number bound on this
-                  workspace.
+                  {t("lit.developers.16")}{" "}
+                  <code>{sendTo}</code>{t("lit.developers.17")}
                 </>
               ) : (
                 <>
-                  Send this encrypted code as a WhatsApp message to the number
-                  bound on this workspace.
+                  {t("lit.developers.18")}
                 </>
               )}{" "}
-              Status updates when the inbound message is decrypted.
+              {t("lit.developers.19")}
             </p>
             {active.deepLink ? (
               <a
@@ -377,28 +370,28 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
                 target="_blank"
                 rel="noreferrer"
               >
-                Open {active.channel === "telegram" ? "Telegram" : "WhatsApp"}
+                {t("lit.developers.20")}{' '}{active.channel === "telegram" ? t("common.telegram") : "WhatsApp"}
               </a>
             ) : null}
             <dl className="meta">
               {sendTo ? (
                 <>
-                  <dt>Send to</dt>
+                  <dt>{t("lit.developers.21")}</dt>
                   <dd>
                     <code>{sendTo}</code> <CopyButton value={sendTo} />
                   </dd>
                 </>
               ) : null}
-              <dt>Send</dt>
+              <dt>{t("verify.send")}</dt>
               <dd>
                 <code>{active.messageToSend}</code>{" "}
-                <CopyButton value={active.messageToSend} label="Copy message" />
+                <CopyButton value={active.messageToSend} label={t("verify.copyMessage")} />
               </dd>
-              <dt>Expires</dt>
+              <dt>{t("verify.expires")}</dt>
               <dd>{formatWhen(active.expiresAt)}</dd>
               {active.purpose ? (
                 <>
-                  <dt>Purpose</dt>
+                  <dt>{t("purposes.field")}</dt>
                   <dd>
                     <code>{active.purpose}</code>
                   </dd>
@@ -406,7 +399,7 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
               ) : null}
               {result?.verifiedSubject ? (
                 <>
-                  <dt>Proved</dt>
+                  <dt>{t("overview.colProved")}</dt>
                   <dd>
                     <ProofPill subject={result.verifiedSubject} />
                   </dd>
@@ -414,7 +407,7 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
               ) : null}
               {result?.identity ? (
                 <>
-                  <dt>Identity</dt>
+                  <dt>{t("overview.colIdentity")}</dt>
                   <dd>
                     <code>
                       {result.identity.phoneNumber ?? result.identity.ref}
@@ -432,7 +425,7 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
                 setStatus("waiting");
               }}
             >
-              Generate another code
+              {t("lit.developers.22")}
             </button>
           </div>
         </article>
@@ -447,8 +440,8 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>Tenant id</h2>
-            <p className="hint">Sent as <code>x-mvs-tenant</code> on ingest.</p>
+            <h2>{t("dev.tenantId")}</h2>
+            <p className="hint">{t("lit.developers.23")}{' '}<code>x-mvs-tenant</code>{' '}{t("lit.developers.24")}</p>
           </div>
           {me?.tenant.id ? <CopyButton value={me.tenant.id} /> : null}
         </header>
@@ -460,15 +453,12 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>API key</h2>
+            <h2>{t("docs.authKey")}</h2>
             <p className="hint">
-              <code>Authorization: Bearer</code> for session create,{" "}
+              <code>Authorization: Bearer</code>{' '}{t("lit.developers.25")}{" "}
               <code>GET /v1/verifications/status?phone=&purpose=</code>,{" "}
-              <code>GET /v1/whatsapp/verifications?phone=</code>, and code claim.
-              Purpose status is scoped to a slug. Phone lookup only finds numbers
-              WhatsApp disclosed; identity-only proofs stay on{" "}
-              <code>GET /v1/verification-sessions/:publicId</code>. Shown only at
-              signup or rotation.
+              <code>GET /v1/whatsapp/verifications?phone=</code>{t("lit.developers.26")}{" "}
+              <code>GET /v1/verification-sessions/:publicId</code>{t("lit.developers.27")}
             </p>
           </div>
         </header>
@@ -478,11 +468,11 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
             <CopyButton value={apiKey} />
           </p>
         ) : (
-          <p className="hint">Hidden. Rotate to mint a new key — the previous one stops working immediately.</p>
+          <p className="hint">{t("dev.apiHidden")}</p>
         )}
         <div className="panel-actions">
           <button type="button" className="secondary" onClick={() => void rotateApi()}>
-            Rotate API key
+            {t("dev.rotateApi")}
           </button>
         </div>
       </article>
@@ -490,10 +480,10 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>Ingest secret</h2>
+            <h2>{t("dev.ingest")}</h2>
             <p className="hint">
-              HMAC-SHA256 key for inbound messages. Sign{" "}
-              <code>{"{timestamp}.{body}"}</code> and send it as{" "}
+              {t("lit.developers.28")}{" "}
+              <code>{"{timestamp}.{body}"}</code> {t("lit.developers.sendAs")}{" "}
               <code>x-mvs-signature</code>.
             </p>
           </div>
@@ -504,11 +494,11 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
             <CopyButton value={ingestSecret} />
           </p>
         ) : (
-          <p className="hint">Hidden. Rotate to reveal a new secret.</p>
+          <p className="hint">{t("dev.ingestHidden")}</p>
         )}
         <div className="panel-actions">
           <button type="button" className="secondary" onClick={() => void rotateIngest()}>
-            Rotate ingest secret
+            {t("dev.rotateIngest")}
           </button>
         </div>
       </article>
@@ -516,12 +506,10 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>Mint secret</h2>
+            <h2>{t("dev.mint")}</h2>
             <p className="hint">
-              Your backend uses this to issue codes with{" "}
-              <code>@mvs/mint</code>. Customers send that code from WhatsApp or
-              Telegram. Shown only at signup or rotation. Previous codes still
-              work for 15 minutes after you rotate.
+              {t("lit.developers.29")}{" "}
+              <code>@mvs/mint</code>{t("lit.developers.30")}
             </p>
           </div>
         </header>
@@ -531,11 +519,11 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
             <CopyButton value={mintSecret} />
           </p>
         ) : (
-          <p className="hint">Hidden. Rotate to reveal a new secret.</p>
+          <p className="hint">{t("dev.ingestHidden")}</p>
         )}
         <div className="panel-actions">
           <button type="button" className="secondary" onClick={() => void rotateMint()}>
-            Rotate mint secret
+            {t("dev.rotateMint")}
           </button>
         </div>
       </article>
@@ -543,14 +531,14 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
       <article className="panel">
         <header className="panel-head">
           <div>
-            <h2>Inbound ingest</h2>
+            <h2>{t("dev.ingestTitle")}</h2>
             <p className="hint">
-              Your gateway <code>POST</code>s to this URL. Include{" "}
-              <code>x-mvs-tenant</code>, <code>x-mvs-timestamp</code>, and the
-              signature header.
+              {t("lit.developers.gatewayPost")} <code>POST</code>{" "}
+              {t("lit.developers.gatewayInclude")} <code>x-mvs-tenant</code>,{" "}
+              <code>x-mvs-timestamp</code> {t("lit.developers.gatewaySignature")}
             </p>
           </div>
-          <CopyButton value={ingestEnv} label="Copy env" />
+          <CopyButton value={ingestEnv} label={t("dev.copyEnv")} />
         </header>
         <pre>{ingestEnv}</pre>
       </article>
@@ -561,17 +549,18 @@ INGEST_SECRET=${ingestSecret ?? "<rotate to reveal>"}`;
 function liveSimulationLabel(
   status: SimStatus,
   result: Verification | null,
+  t: Translate,
 ): string {
   if (status === "verified") {
     return result?.verifiedSubject === "phone_number"
-      ? "Verified phone number"
-      : "Verified messaging identity";
+      ? t("verify.livePhone")
+      : t("verify.liveIdentity");
   }
   if (status === "expired") {
-    return "Not verified";
+    return t("lit.developers.notVerified");
   }
   if (status === "error") {
-    return "Realtime connection lost";
+    return t("verify.liveError");
   }
-  return "Waiting for inbound message";
+  return t("lit.developers.waitingInbound");
 }
