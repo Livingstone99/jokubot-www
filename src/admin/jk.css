@@ -3411,3 +3411,101 @@ a.jk-row:hover {
 .jk-connect-steps .jk-steps-label {
   display: inline !important;
 }
+
+/* ---------- Activité : tableau détaillé ---------- */
+.jk-count {
+  margin: 0;
+}
+
+.jk-nowrap {
+  white-space: nowrap;
+}
+
+.jk-table tbody tr.is-clickable {
+  cursor: pointer;
+}
+
+.jk-act-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.jk-cell-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.jk-act-card {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jk-act-card:hover,
+.jk-act-card:focus-visible {
+  border-color: var(--jk-red);
+  outline: none;
+}
+
+.jk-act-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  color: var(--jk-red-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.jk-act-explain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.jk-act-dl dd {
+  overflow-wrap: anywhere;
+}
+
+/* Le tableau défile dans son cadre sans élargir la page. */
+.jk-page,
+.jk-page > * {
+  min-width: 0;
+}
+
+/* Écrans moyens : colonnes secondaires visibles dans « Détails ». */
+@media (max-width: 1365px) {
+  .jk-act-table .jk-col-opt {
+    display: none;
+  }
+
+  .jk-act-table th,
+  .jk-act-table td {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .jk-act-table .jk-cell-action .jk-btn {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
+
+/* Tablette : fiches plutôt qu'un tableau trop serré. */
+@media (max-width: 900px) {
+  .jk-table-wrap.jk-act-wrap {
+    display: none;
+  }
+
+  .jk-cards.jk-act-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}

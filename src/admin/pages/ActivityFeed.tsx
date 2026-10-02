@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 
 import { api, type InboundRow } from "../api.js";
 import type { MessageKey } from "../i18n.js";
-import { IconActivity, IconCircleCheck, IconMessage, IconShieldCheck, IconAlert, type IconComponent } from "../jk/icons.js";
-import { ChannelMark, EmptyState, ErrorState, Loading, PageTitle, SearchInput } from "../jk/ui.js";
+import { IconActivity, IconChevronRight, IconCircleCheck, IconMessage, IconShieldCheck, IconAlert, type IconComponent } from "../jk/icons.js";
+import { Badge, ChannelMark, EmptyState, ErrorState, Loading, Modal, PageTitle, SearchInput, type BadgeTone } from "../jk/ui.js";
 import { localeTag } from "../i18n.js";
 import { useT } from "../locale.js";
 import { senderLabel } from "../ui.js";
@@ -41,6 +41,39 @@ export function activityIcon(outcome: string): IconComponent {
   return KIND_ICON[activityKind(outcome)];
 }
 
+const KIND_TONE: Record<Kind, BadgeTone> = {
+  received: "muted",
+  replied: "outline",
+  verified: "solid",
+  refused: "outline",
+};
+
+const KNOWN_OUTCOMES = ["verified", "triggered", "expired", "unknown_token", "already_used", "channel_mismatch", "sender_mismatch"];
+
+/** Issue technique → phrase courte (tableau) ou explication (détails). */
+function outcomeKey(outcome: string): string {
+  return KNOWN_OUTCOMES.includes(outcome) ? outcome : "received";
+}
+function shortDetail(outcome: string): MessageKey {
+  return `jk.act.short.${outcomeKey(outcome)}` as MessageKey;
+}
+function explanation(outcome: string): MessageKey {
+  return `jk.act.why.${outcomeKey(outcome)}` as MessageKey;
+}
+
+function channelName(channel: InboundRow["channel"]) {
+  return channel === "telegram" ? "Telegram" : "WhatsApp";
+}
+
+function dateTime(value: string, long = false) {
+  return new Date(value).toLocaleString(
+    localeTag(),
+    long
+      ? { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }
+      : { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
+  );
+}
+
 type Range = "today" | "7d" | "all";
 
 export function ActivityFeedPage() {
@@ -51,6 +84,7 @@ export function ActivityFeedPage() {
   const [channel, setChannel] = useState<"all" | "whatsapp" | "telegram">("all");
   const [kind, setKind] = useState<"all" | Kind>("all");
   const [range, setRange] = useState<Range>("all");
+  const [selected, setSelected] = useState<InboundRow | null>(null);
 
   const load = useCallback(() => {
     setError(false);
@@ -78,16 +112,6 @@ export function ActivityFeedPage() {
       return true;
     });
   }, [rows, query, channel, kind, range]);
-
-  // Regroupe par jour pour une lecture chronologique.
-  const groups = useMemo(() => {
-    const map = new Map<string, InboundRow[]>();
-    for (const row of filtered) {
-      const day = new Date(row.receivedAt).toLocaleDateString(localeTag(), { weekday: "long", day: "numeric", month: "long" });
-      map.set(day, [...(map.get(day) ?? []), row]);
-    }
-    return [...map];
-  }, [filtered]);
 
   return (
     <div className="jk-page">
@@ -141,35 +165,168 @@ export function ActivityFeedPage() {
           }
         />
       ) : (
-        groups.map(([day, items]) => (
-          <section key={day} className="jk-card jk-timeline-card">
-            <h2 className="jk-day">{day}</h2>
-            <ol className="jk-timeline">
-              {items.map((row) => {
-                const Icon = activityIcon(row.outcome);
-                return (
-                  <li key={row.id}>
-                    <time dateTime={row.receivedAt}>
-                      {new Date(row.receivedAt).toLocaleTimeString(localeTag(), { hour: "2-digit", minute: "2-digit" })}
-                    </time>
-                    <span className="jk-timeline-icon">
-                      <Icon size={16} />
+        <>
+          <p className="jk-muted jk-small jk-count">
+            {filtered.length === 1 ? t("jk.act.countOne") : t("jk.act.count", { count: filtered.length })}
+          </p>
+          <div className="jk-table-wrap is-cards jk-act-wrap">
+            <table className="jk-table jk-act-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t("jk.act.colDate")}</th>
+                  <th scope="col">{t("jk.act.colEvent")}</th>
+                  <th scope="col">{t("jk.act.colClient")}</th>
+                  <th scope="col">{t("jk.act.colChannel")}</th>
+                  <th scope="col" className="jk-col-opt">{t("jk.act.colAutomation")}</th>
+                  <th scope="col" className="jk-col-opt">{t("jk.act.colDetail")}</th>
+                  <th scope="col">
+                    <span className="jk-sr">{t("jk.act.details")}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((row) => {
+                  const Icon = activityIcon(row.outcome);
+                  const kindOf = activityKind(row.outcome);
+                  return (
+                    <tr key={row.id} className="is-clickable" onClick={() => setSelected(row)}>
+                      <td className="jk-nowrap">
+                        <time dateTime={row.receivedAt}>{dateTime(row.receivedAt)}</time>
+                      </td>
+                      <td>
+                        <span className="jk-act-event">
+                          <span className="jk-timeline-icon jk-col-opt">
+                            <Icon size={16} />
+                          </span>
+                          <Badge tone={KIND_TONE[kindOf]}>{t(KIND_LABEL[kindOf])}</Badge>
+                        </span>
+                      </td>
+                      <td>
+                        <strong>{senderLabel(row)}</strong>
+                      </td>
+                      <td className="jk-nowrap">
+                        <ChannelMark channel={row.channel} size={14} /> {channelName(row.channel)}
+                      </td>
+                      <td className="jk-col-opt">{row.triggerName ?? <span className="jk-muted">—</span>}</td>
+                      <td className="jk-muted jk-col-opt">{t(shortDetail(row.outcome))}</td>
+                      <td className="jk-cell-action">
+                        <button
+                          type="button"
+                          className="jk-btn is-text is-small"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelected(row);
+                          }}
+                        >
+                          {t("jk.act.details")}
+                          <IconChevronRight size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <ul className="jk-cards jk-act-cards">
+            {filtered.map((row) => {
+              const kindOf = activityKind(row.outcome);
+              return (
+                <li key={row.id}>
+                  <button type="button" className="jk-card jk-mini jk-act-card" onClick={() => setSelected(row)}>
+                    <span className="jk-mini-top">
+                      <strong>{senderLabel(row)}</strong>
+                      <Badge tone={KIND_TONE[kindOf]}>{t(KIND_LABEL[kindOf])}</Badge>
                     </span>
-                    <div className="jk-timeline-main">
-                      <strong>{t(activityLabel(row.outcome))}</strong>
-                      <span>
-                        <ChannelMark channel={row.channel} size={14} /> {row.channel === "telegram" ? "Telegram" : "WhatsApp"} ·{" "}
-                        {senderLabel(row)}
-                        {row.triggerName ? ` · ${row.triggerName}` : ""}
-                      </span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-        ))
+                    <span className="jk-row-sub">
+                      <ChannelMark channel={row.channel} size={13} /> {channelName(row.channel)} · {dateTime(row.receivedAt)}
+                    </span>
+                    <span className="jk-row-sub">
+                      {t(shortDetail(row.outcome))}
+                      {row.triggerName ? ` · ${row.triggerName}` : ""}
+                    </span>
+                    <span className="jk-act-more">
+                      {t("jk.act.details")}
+                      <IconChevronRight size={16} />
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
+
+      <ActivityDetails row={selected} onClose={() => setSelected(null)} />
     </div>
+  );
+}
+
+/* ---------- Détails d'un événement ---------- */
+
+function ActivityDetails({ row, onClose }: { row: InboundRow | null; onClose: () => void }) {
+  const t = useT();
+  const kindOf = row ? activityKind(row.outcome) : "received";
+  return (
+    <Modal
+      open={row !== null}
+      title={row ? t(KIND_LABEL[kindOf]) : ""}
+      onClose={onClose}
+      footer={
+        row ? (
+          <>
+            <Link
+              className="jk-btn is-secondary"
+              to={`/sessions/${row.channel}/${encodeURIComponent(row.senderRef)}`}
+              onClick={onClose}
+            >
+              {t("jk.act.openConversation")}
+            </Link>
+            <button type="button" className="jk-btn is-primary" onClick={onClose}>
+              {t("jk.close")}
+            </button>
+          </>
+        ) : undefined
+      }
+    >
+      {row ? (
+        <>
+          <p className="jk-act-explain">
+            <Badge tone={KIND_TONE[kindOf]}>{t(shortDetail(row.outcome))}</Badge>
+            <span>{t(explanation(row.outcome))}</span>
+          </p>
+          <dl className="jk-summary jk-act-dl">
+            <div>
+              <dt>{t("jk.act.colClient")}</dt>
+              <dd>{senderLabel(row)}</dd>
+            </div>
+            <div>
+              <dt>{t("jk.act.colChannel")}</dt>
+              <dd>
+                <ChannelMark channel={row.channel} size={14} /> {channelName(row.channel)}
+              </dd>
+            </div>
+            <div>
+              <dt>{t("jk.act.when")}</dt>
+              <dd>{dateTime(row.receivedAt, true)}</dd>
+            </div>
+            <div>
+              <dt>{t("jk.act.colAutomation")}</dt>
+              <dd>{row.triggerName ?? t("jk.act.none")}</dd>
+            </div>
+            {row.sessionPublicId ? (
+              <div>
+                <dt>{t("jk.act.session")}</dt>
+                <dd className="jk-mono">{row.sessionPublicId}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt>{t("jk.act.ref")}</dt>
+              <dd className="jk-mono">{row.id}</dd>
+            </div>
+          </dl>
+        </>
+      ) : null}
+    </Modal>
   );
 }
