@@ -39,7 +39,7 @@ type NavItem = { to: string; label: MessageKey; icon: IconComponent; end?: boole
 export const MAIN_NAV: NavItem[] = [
   { to: "/overview", label: "jk.nav.dashboard", icon: IconHome, end: true },
   { to: "/triggers", label: "jk.nav.automations", icon: IconBot },
-  { to: "/channels", label: "jk.nav.channels", icon: IconLink, add: { to: "/channels?add=1", label: "jk.ch.add" } },
+  { to: "/channels", label: "jk.nav.channels", icon: IconLink },
   { to: "/activity", label: "jk.nav.activity", icon: IconActivity },
   { to: "/usage", label: "jk.nav.usage", icon: IconCard },
   { to: "/settings", label: "jk.nav.settings", icon: IconSettings },
