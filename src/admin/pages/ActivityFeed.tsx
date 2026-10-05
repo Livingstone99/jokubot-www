@@ -179,10 +179,7 @@ export function ActivityFeedPage() {
                   <th scope="col">{t("jk.act.colDate")}</th>
                   <th scope="col">{t("jk.act.colClient")}</th>
                   <th scope="col">{t("jk.act.colChannel")}</th>
-                  <th scope="col">{t("jk.act.colDetail")}</th>
-                  <th scope="col" className="jk-cell-action">
-                    <span className="jk-sr">{t("jk.act.viewDetails")}</span>
-                  </th>
+                  <th scope="col" className="jk-cell-action">{t("jk.act.colDetail")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -197,7 +194,6 @@ export function ActivityFeedPage() {
                     <td className="jk-nowrap">
                       <ChannelMark channel={row.channel} size={14} /> {channelName(row.channel)}
                     </td>
-                    <td className="jk-muted">{t(shortDetail(row.outcome))}</td>
                     <td className="jk-cell-action">
                       <EyeButton
                         label={t("jk.act.viewDetails")}
@@ -220,7 +216,6 @@ export function ActivityFeedPage() {
                   <span className="jk-row-sub">
                     <ChannelMark channel={row.channel} size={13} /> {channelName(row.channel)} · {dayOf(row.receivedAt)}
                   </span>
-                  <span className="jk-row-sub">{t(shortDetail(row.outcome))}</span>
                 </span>
                 <EyeButton label={t("jk.act.viewDetails")} onClick={() => setSelected(row)} />
               </li>
