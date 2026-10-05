@@ -1795,6 +1795,8 @@ const en = {
   "jk.act.short.already_used": "Code already used",
   "jk.act.short.channel_mismatch": "Wrong channel",
   "jk.act.short.sender_mismatch": "Wrong number",
+  "jk.act.time": "Time",
+  "jk.act.viewDetails": "See details",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -3622,6 +3624,8 @@ const fr: Record<MessageKey, string> = {
   "jk.act.short.already_used": "Code déjà utilisé",
   "jk.act.short.channel_mismatch": "Mauvais canal",
   "jk.act.short.sender_mismatch": "Mauvais numéro",
+  "jk.act.time": "Heure",
+  "jk.act.viewDetails": "Voir les détails",
 };
 
 const catalogs: Record<Locale, Record<MessageKey, string>> = { en, fr };

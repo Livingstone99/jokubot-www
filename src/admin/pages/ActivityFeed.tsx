@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { api, type InboundRow } from "../api.js";
 import type { MessageKey } from "../i18n.js";
-import { IconActivity, IconChevronRight, IconCircleCheck, IconMessage, IconShieldCheck, IconAlert, type IconComponent } from "../jk/icons.js";
+import { IconActivity, IconEye, IconCircleCheck, IconMessage, IconShieldCheck, IconAlert, type IconComponent } from "../jk/icons.js";
 import { Badge, ChannelMark, EmptyState, ErrorState, Loading, Modal, PageTitle, SearchInput, type BadgeTone } from "../jk/ui.js";
 import { localeTag } from "../i18n.js";
 import { useT } from "../locale.js";
@@ -65,12 +65,15 @@ function channelName(channel: InboundRow["channel"]) {
   return channel === "telegram" ? "Telegram" : "WhatsApp";
 }
 
-function dateTime(value: string, long = false) {
-  return new Date(value).toLocaleString(
-    localeTag(),
-    long
-      ? { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }
-      : { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
+function dayOf(value: string) {
+  return new Date(value).toLocaleDateString(localeTag(), { day: "numeric", month: "short", year: "numeric" });
+}
+
+function EyeButton({ label, onClick }: { label: string; onClick: (event: React.MouseEvent) => void }) {
+  return (
+    <button type="button" className="jk-icon-btn jk-eye-btn" aria-label={label} title={label} onClick={onClick}>
+      <IconEye size={18} />
+    </button>
   );
 }
 
@@ -174,85 +177,54 @@ export function ActivityFeedPage() {
               <thead>
                 <tr>
                   <th scope="col">{t("jk.act.colDate")}</th>
-                  <th scope="col">{t("jk.act.colEvent")}</th>
                   <th scope="col">{t("jk.act.colClient")}</th>
                   <th scope="col">{t("jk.act.colChannel")}</th>
-                  <th scope="col" className="jk-col-opt">{t("jk.act.colAutomation")}</th>
-                  <th scope="col" className="jk-col-opt">{t("jk.act.colDetail")}</th>
-                  <th scope="col">
-                    <span className="jk-sr">{t("jk.act.details")}</span>
+                  <th scope="col">{t("jk.act.colDetail")}</th>
+                  <th scope="col" className="jk-cell-action">
+                    <span className="jk-sr">{t("jk.act.viewDetails")}</span>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((row) => {
-                  const Icon = activityIcon(row.outcome);
-                  const kindOf = activityKind(row.outcome);
-                  return (
-                    <tr key={row.id} className="is-clickable" onClick={() => setSelected(row)}>
-                      <td className="jk-nowrap">
-                        <time dateTime={row.receivedAt}>{dateTime(row.receivedAt)}</time>
-                      </td>
-                      <td>
-                        <span className="jk-act-event">
-                          <span className="jk-timeline-icon jk-col-opt">
-                            <Icon size={16} />
-                          </span>
-                          <Badge tone={KIND_TONE[kindOf]}>{t(KIND_LABEL[kindOf])}</Badge>
-                        </span>
-                      </td>
-                      <td>
-                        <strong>{senderLabel(row)}</strong>
-                      </td>
-                      <td className="jk-nowrap">
-                        <ChannelMark channel={row.channel} size={14} /> {channelName(row.channel)}
-                      </td>
-                      <td className="jk-col-opt">{row.triggerName ?? <span className="jk-muted">—</span>}</td>
-                      <td className="jk-muted jk-col-opt">{t(shortDetail(row.outcome))}</td>
-                      <td className="jk-cell-action">
-                        <button
-                          type="button"
-                          className="jk-btn is-text is-small"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelected(row);
-                          }}
-                        >
-                          {t("jk.act.details")}
-                          <IconChevronRight size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {filtered.map((row) => (
+                  <tr key={row.id} className="is-clickable" onClick={() => setSelected(row)}>
+                    <td className="jk-nowrap">
+                      <time dateTime={row.receivedAt}>{dayOf(row.receivedAt)}</time>
+                    </td>
+                    <td>
+                      <strong>{senderLabel(row)}</strong>
+                    </td>
+                    <td className="jk-nowrap">
+                      <ChannelMark channel={row.channel} size={14} /> {channelName(row.channel)}
+                    </td>
+                    <td className="jk-muted">{t(shortDetail(row.outcome))}</td>
+                    <td className="jk-cell-action">
+                      <EyeButton
+                        label={t("jk.act.viewDetails")}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setSelected(row);
+                        }}
+                      />
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <ul className="jk-cards jk-act-cards">
-            {filtered.map((row) => {
-              const kindOf = activityKind(row.outcome);
-              return (
-                <li key={row.id}>
-                  <button type="button" className="jk-card jk-mini jk-act-card" onClick={() => setSelected(row)}>
-                    <span className="jk-mini-top">
-                      <strong>{senderLabel(row)}</strong>
-                      <Badge tone={KIND_TONE[kindOf]}>{t(KIND_LABEL[kindOf])}</Badge>
-                    </span>
-                    <span className="jk-row-sub">
-                      <ChannelMark channel={row.channel} size={13} /> {channelName(row.channel)} · {dateTime(row.receivedAt)}
-                    </span>
-                    <span className="jk-row-sub">
-                      {t(shortDetail(row.outcome))}
-                      {row.triggerName ? ` · ${row.triggerName}` : ""}
-                    </span>
-                    <span className="jk-act-more">
-                      {t("jk.act.details")}
-                      <IconChevronRight size={16} />
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
+            {filtered.map((row) => (
+              <li key={row.id} className="jk-card jk-act-card">
+                <span className="jk-act-card-text">
+                  <strong>{senderLabel(row)}</strong>
+                  <span className="jk-row-sub">
+                    <ChannelMark channel={row.channel} size={13} /> {channelName(row.channel)} · {dayOf(row.receivedAt)}
+                  </span>
+                  <span className="jk-row-sub">{t(shortDetail(row.outcome))}</span>
+                </span>
+                <EyeButton label={t("jk.act.viewDetails")} onClick={() => setSelected(row)} />
+              </li>
+            ))}
           </ul>
         </>
       )}
@@ -291,40 +263,55 @@ function ActivityDetails({ row, onClose }: { row: InboundRow | null; onClose: ()
     >
       {row ? (
         <>
-          <p className="jk-act-explain">
-            <Badge tone={KIND_TONE[kindOf]}>{t(shortDetail(row.outcome))}</Badge>
-            <span>{t(explanation(row.outcome))}</span>
-          </p>
-          <dl className="jk-summary jk-act-dl">
-            <div>
-              <dt>{t("jk.act.colClient")}</dt>
-              <dd>{senderLabel(row)}</dd>
-            </div>
-            <div>
-              <dt>{t("jk.act.colChannel")}</dt>
-              <dd>
-                <ChannelMark channel={row.channel} size={14} /> {channelName(row.channel)}
-              </dd>
-            </div>
-            <div>
-              <dt>{t("jk.act.when")}</dt>
-              <dd>{dateTime(row.receivedAt, true)}</dd>
-            </div>
-            <div>
-              <dt>{t("jk.act.colAutomation")}</dt>
-              <dd>{row.triggerName ?? t("jk.act.none")}</dd>
-            </div>
-            {row.sessionPublicId ? (
-              <div>
-                <dt>{t("jk.act.session")}</dt>
-                <dd className="jk-mono">{row.sessionPublicId}</dd>
-              </div>
-            ) : null}
-            <div>
-              <dt>{t("jk.act.ref")}</dt>
-              <dd className="jk-mono">{row.id}</dd>
-            </div>
-          </dl>
+          <p className="jk-act-explain">{t(explanation(row.outcome))}</p>
+          <div className="jk-table-wrap">
+            <table className="jk-table jk-detail-table">
+              <tbody>
+                <tr>
+                  <th scope="row">{t("jk.act.colEvent")}</th>
+                  <td>
+                    <Badge tone={KIND_TONE[kindOf]}>{t(KIND_LABEL[kindOf])}</Badge>
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("jk.act.colDetail")}</th>
+                  <td>{t(shortDetail(row.outcome))}</td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("jk.act.colDate")}</th>
+                  <td>{new Date(row.receivedAt).toLocaleDateString(localeTag(), { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("jk.act.time")}</th>
+                  <td>{new Date(row.receivedAt).toLocaleTimeString(localeTag(), { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("jk.act.colClient")}</th>
+                  <td>{senderLabel(row)}</td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("jk.act.colChannel")}</th>
+                  <td>
+                    <ChannelMark channel={row.channel} size={14} /> {channelName(row.channel)}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">{t("jk.act.colAutomation")}</th>
+                  <td>{row.triggerName ?? t("jk.act.none")}</td>
+                </tr>
+                {row.sessionPublicId ? (
+                  <tr>
+                    <th scope="row">{t("jk.act.session")}</th>
+                    <td className="jk-mono">{row.sessionPublicId}</td>
+                  </tr>
+                ) : null}
+                <tr>
+                  <th scope="row">{t("jk.act.ref")}</th>
+                  <td className="jk-mono">{row.id}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </>
       ) : null}
     </Modal>

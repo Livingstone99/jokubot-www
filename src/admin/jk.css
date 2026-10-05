@@ -3479,36 +3479,7 @@ a.jk-row:hover {
   min-width: 0;
 }
 
-/* Écrans moyens : colonnes secondaires visibles dans « Détails ». */
-@media (max-width: 1365px) {
-  .jk-act-table .jk-col-opt {
-    display: none;
-  }
 
-  .jk-act-table th,
-  .jk-act-table td {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .jk-act-table .jk-cell-action .jk-btn {
-    padding-left: 4px;
-    padding-right: 4px;
-  }
-}
-
-/* Tablette : fiches plutôt qu'un tableau trop serré. */
-@media (max-width: 900px) {
-  .jk-table-wrap.jk-act-wrap {
-    display: none;
-  }
-
-  .jk-cards.jk-act-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-}
 
 /* Mobile : favicon JokuBot à la place du menu burger et du logo. */
 .jk-header-brand img.jk-header-favicon {
@@ -3582,4 +3553,84 @@ a.jk-row:hover {
 .jk-steps-label {
   max-width: 100%;
   font-size: 13px;
+}
+
+/* ---------- Activité : tableau simple + œil, détails en tableau ---------- */
+.jk-act-table td,
+.jk-act-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.jk-act-table .jk-cell-action {
+  width: 1%;
+  text-align: right;
+}
+
+.jk-eye-btn {
+  width: 36px;
+  height: 36px;
+  color: var(--jk-ink-2);
+  border-radius: 10px;
+}
+
+.jk-eye-btn:hover,
+.jk-eye-btn:focus-visible {
+  color: var(--jk-red);
+  background: var(--jk-red-soft);
+}
+
+.jk-act-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px 14px 16px;
+  cursor: default;
+}
+
+.jk-act-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jk-act-card-text strong {
+  overflow-wrap: anywhere;
+}
+
+.jk-act-explain {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--jk-red);
+  border-radius: 0 10px 10px 0;
+  background: var(--jk-red-soft);
+  color: var(--jk-ink);
+}
+
+.jk-detail-table th {
+  width: 40%;
+  padding: 11px 14px;
+  background: var(--jk-hover);
+  color: var(--jk-ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: normal;
+  vertical-align: middle;
+  border-top: 1px solid var(--jk-line);
+}
+
+.jk-detail-table td {
+  padding: 11px 14px;
+  overflow-wrap: anywhere;
+}
+
+.jk-detail-table tr:first-child th,
+.jk-detail-table tr:first-child td {
+  border-top: 0;
+}
+
+.jk-detail-table tbody tr:hover {
+  background: transparent;
 }
