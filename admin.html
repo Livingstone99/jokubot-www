@@ -2,37 +2,34 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>JokuBot — espace business</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>JokuBot</title>
+    <meta name="description" content="JokuBot répond à vos clients sur WhatsApp, Telegram, Discord et par e-mail." />
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#f5f4f6" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="JokuBot" />
+    <link rel="manifest" href="app.webmanifest" />
+    <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
     <script>
+      // Thème et langue appliqués avant l'affichage, pour éviter un éclair blanc.
       (function () {
         try {
-          var storedTheme = localStorage.getItem("mvs.theme");
-          var theme =
-            storedTheme === "light" || storedTheme === "dark"
-              ? storedTheme
-              : window.matchMedia("(prefers-color-scheme: dark)").matches
-                ? "dark"
-                : "light";
+          var theme = localStorage.getItem("jokubot.theme");
+          if (theme !== "light" && theme !== "dark") {
+            theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          }
           document.documentElement.setAttribute("data-theme", theme);
+          document.documentElement.lang = localStorage.getItem("jokubot.lang") === "en" ? "en" : "fr";
         } catch (e) {
           document.documentElement.setAttribute("data-theme", "light");
-        }
-        try {
-          var storedLocale = localStorage.getItem("mvs.locale");
-          document.documentElement.lang = storedLocale === "en" ? "en" : "fr";
-        } catch (e) {
-          document.documentElement.lang = "fr";
         }
       })();
     </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/admin/main.tsx"></script>
+    <script type="module" src="/src/jokubot/main.tsx"></script>
   </body>
 </html>
