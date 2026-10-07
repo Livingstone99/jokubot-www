@@ -4,6 +4,7 @@ import { HashRouter } from "react-router-dom";
 
 import { App } from "./App.js";
 import "./styles.css";
+import "./jk.css";
 
 const root = document.getElementById("root");
 if (!root) {

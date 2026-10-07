@@ -6,7 +6,6 @@ import { useAuth } from "../auth.js";
 import { siteHref } from "../../config.js";
 import { JokubotMark, JokubotWordmark } from "../brand/Logo.js";
 import { LocaleMenu, useT } from "../locale.js";
-import { ThemeToggle } from "../theme.js";
 
 export function LoginPage() {
   const { setMe } = useAuth();
@@ -16,6 +15,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -36,14 +36,12 @@ export function LoginPage() {
     <div className="auth">
       <AuthStory />
       <div className="auth-form">
-        <AuthHome />
         <div className="auth-toolbar">
           <LocaleMenu />
-          <ThemeToggle />
         </div>
         <form className="panel auth-card" onSubmit={(event) => void onSubmit(event)}>
-          <p className="eyebrow">{t("auth.business")}</p>
           <h1>{t("auth.signIn")}</h1>
+          <p className="auth-lede">{t("auth.signInLead")}</p>
           <label>
             {t("common.email")}
             <input
@@ -57,15 +55,41 @@ export function LoginPage() {
           </label>
           <label>
             {t("common.password")}
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="current-password"
-              required
-            />
+            <span className="input-wrap">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                className="input-reveal"
+                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((value) => !value)}
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path
+                    d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                  />
+                  <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+                  {showPassword ? (
+                    <path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                  ) : null}
+                </svg>
+              </button>
+            </span>
           </label>
-          {error ? <p className="error">{error}</p> : null}
+          {error ? (
+            <p className="error auth-error" role="alert">
+              {error}
+            </p>
+          ) : null}
           <button type="submit" className="primary" disabled={busy}>
             {busy ? t("auth.signingIn") : t("auth.signIn")}
           </button>
@@ -78,30 +102,15 @@ export function LoginPage() {
   );
 }
 
-export function AuthHome() {
-  return (
-    <a href={siteHref("/")} className="auth-home">
-      <span className="mark" aria-hidden="true">
-        <JokubotMark size={16} />
-      </span>
-      <JokubotWordmark />
-    </a>
-  );
-}
-
 export function AuthStory({ eyebrow }: { eyebrow?: string }) {
   const t = useT();
   const storyEyebrow = eyebrow ?? t("www.hero.eyebrow");
   return (
-    <aside className="auth-story">
-      <video
-        className="auth-story-video"
-        src={siteHref("/agent.mp4")}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
+    <aside className="auth-story has-bot">
+      <img
+        className="auth-story-art auth-story-bot"
+        src={siteHref("/bot-assis.jpg")}
+        alt=""
         aria-hidden="true"
       />
       <div className="auth-story-copy">

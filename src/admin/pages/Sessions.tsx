@@ -15,10 +15,12 @@ import {
   senderLabel,
   senderPreview,
 } from "../ui.js";
+import { useT } from "../locale.js";
 
 const CHANNELS = ["all", "whatsapp", "telegram"] as const;
 
 export function SessionsPage() {
+  const t = useT();
   const navigate = useNavigate();
   const params = useParams<{ channel?: string; sender?: string }>();
   const selectedChannel =
@@ -47,7 +49,7 @@ export function SessionsPage() {
         }
       } catch (err: unknown) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Could not load sessions.");
+          setError(err instanceof Error ? err.message : t("sessions.loadError"));
         }
       }
     }
@@ -80,7 +82,7 @@ export function SessionsPage() {
       } catch (err: unknown) {
         if (!cancelled && first) {
           setThreadError(
-            err instanceof Error ? err.message : "Could not load this session.",
+            err instanceof Error ? err.message : t("sessions.threadError"),
           );
         }
       } finally {
@@ -126,11 +128,10 @@ export function SessionsPage() {
     <section className="page">
       <header className="page-head">
         <div>
-          <p className="eyebrow">Sessions</p>
-          <h1>WhatsApp and Telegram</h1>
+          <p className="eyebrow">{t("nav.sessions")}</p>
+          <h1>{t("ui.whatsappAndTelegram")}</h1>
           <p className="lede">
-            Numbers and accounts that have messaged this business. Open one to
-            see that session.
+            {t("sessions.lede")}
           </p>
         </div>
       </header>
@@ -147,24 +148,24 @@ export function SessionsPage() {
         <div className="session-list">
           <div className="session-list-head">
             <label>
-              Channel
+              {t("common.channel")}
               <select
                 value={filter}
                 onChange={(event) =>
                   setFilter(event.target.value as (typeof CHANNELS)[number])
                 }
               >
-                <option value="all">All</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="telegram">Telegram</option>
+                <option value="all">{t("sessions.all")}</option>
+                <option value="whatsapp">{t("common.whatsapp")}</option>
+                <option value="telegram">{t("common.telegram")}</option>
               </select>
             </label>
             <label>
-              Search
+              {t("sessions.search")}
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Number or name"
+                placeholder={t("sessions.searchPlaceholder")}
               />
             </label>
           </div>
@@ -172,11 +173,11 @@ export function SessionsPage() {
             <div className="skeleton-table session-skeleton" aria-hidden="true" />
           ) : visible.length === 0 ? (
             <EmptyState
-              title="No sessions yet"
+              title={t("overview.noSessionsTitle")}
               body={
                 items.length === 0
-                  ? "When someone messages on WhatsApp or Telegram, they appear here."
-                  : "No senders match this channel or search."
+                  ? t("sessions.emptyBody")
+                  : t("sessions.emptyFilter")
               }
             />
           ) : (
@@ -216,8 +217,8 @@ export function SessionsPage() {
         <div className="session-thread">
           {!selectedOpen ? (
             <EmptyState
-              title="Select a number"
-              body="Choose a sender on the left to open their WhatsApp or Telegram session."
+              title={t("sessions.selectTitle")}
+              body={t("sessions.selectBody")}
             />
           ) : threadError ? (
             <p className="banner banner-danger" role="alert">
@@ -233,7 +234,7 @@ export function SessionsPage() {
                   className="secondary compact session-back"
                   onClick={() => navigate("/sessions")}
                 >
-                  Back
+                  {t("common.back")}
                 </button>
                 <span className="avatar" aria-hidden="true">
                   {initials(senderLabel(thread))}
@@ -266,13 +267,13 @@ export function SessionsPage() {
                         ? message.body
                         : message.direction === "in"
                           ? message.mediaType === "image" || message.body === "[image]"
-                            ? "Photo"
+                            ? t("usage.job.vision")
                             : message.mediaType === "audio" || message.body === "[audio]"
-                              ? "Voice note"
+                              ? t("triggers.listenAudio")
                               : message.mediaType === "file" || message.body === "[file]"
-                                ? "File"
-                                : "Inbound message"
-                          : "Reply"}
+                                ? t("triggers.listenFile")
+                                : t("sessions.inboundMessage")
+                          : t("sessions.reply")}
                     </p>
                     <footer>
                       <time dateTime={message.receivedAt}>
@@ -281,7 +282,7 @@ export function SessionsPage() {
                       {message.direction === "in" && message.outcome ? (
                         <OutcomePill outcome={message.outcome} />
                       ) : (
-                        <span className="muted">Reply</span>
+                        <span className="muted">{t("sessions.reply")}</span>
                       )}
                       {message.triggerName ? (
                         <span className="muted">{message.triggerName}</span>

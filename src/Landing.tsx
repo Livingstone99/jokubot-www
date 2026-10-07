@@ -366,7 +366,7 @@ export function LandingPage() {
                 <li>{t("pricing.starterFeat3")}</li>
                 <li>{t("pricing.starterFeat4")}</li>
               </ul>
-              <a className="secondary" href={appHref("/login")}>
+              <a className="secondary" href="#contact">
                 {t("pricing.starterCta")}
               </a>
             </div>
@@ -384,7 +384,7 @@ export function LandingPage() {
                 <li>{t("pricing.proFeat4")}</li>
                 <li>{t("pricing.proFeat5")}</li>
               </ul>
-              <a className="secondary" href={appHref("/login")}>
+              <a className="secondary" href="#contact">
                 {t("pricing.proCta")}
               </a>
             </div>
@@ -402,7 +402,7 @@ export function LandingPage() {
                 <li>{t("pricing.businessFeat4")}</li>
                 <li>{t("pricing.businessFeat5")}</li>
               </ul>
-              <a className="primary" href={appHref("/login")}>
+              <a className="primary" href="#contact">
                 {t("pricing.businessCta")}
               </a>
             </div>
@@ -473,10 +473,10 @@ export function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <a className="primary" href={appHref("/login")}>
+              <span className="primary is-static">
                 {t("platform.cta")}
                 <IconArrow />
-              </a>
+              </span>
             </div>
           </div>
         </section>

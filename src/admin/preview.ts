@@ -940,7 +940,9 @@ function saveSettings(body: Record<string, unknown>): { tenant: Tenant; webhookS
 function pairSnapshot(): { tenant: Tenant; pair: WhatsAppPair } {
   if (store.tenant.whatsappStatus === "pending" && store.pair.status === "waiting") {
     store.pairPolls += 1;
-    if (store.pairPolls >= 2) {
+    // Démo : le « scan » est simulé après 45 lectures (environ 90 s), pour
+    // laisser le temps de voir l'écran du QR code. Le vrai serveur attend le scan.
+    if (store.pairPolls >= 45) {
       store.tenant.whatsappLinked = true;
       store.tenant.whatsappStatus = "connected";
       store.tenant.whatsappLinkProblem = null;
@@ -957,6 +959,40 @@ function pairSnapshot(): { tenant: Tenant; pair: WhatsAppPair } {
   return { tenant: clone(store.tenant), pair: clone(store.pair) };
 }
 
+/** QR code d'exemple (motif seulement) pour la démo : le vrai vient de WhatsApp. */
+function demoQr(seed: string): string {
+  const size = 25;
+  let h = 2166136261;
+  for (const ch of seed || "jokubot") h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const rand = () => {
+    h ^= h << 13;
+    h ^= h >>> 17;
+    h ^= h << 5;
+    return (h >>> 0) / 4294967296;
+  };
+  const finder = (x: number, y: number) =>
+    [[0, 0], [size - 7, 0], [0, size - 7]].some(([fx, fy]) => x >= fx! && x < fx! + 7 && y >= fy! && y < fy! + 7);
+  const inFinder = (x: number, y: number) => {
+    for (const [fx, fy] of [[0, 0], [size - 7, 0], [0, size - 7]] as const) {
+      const dx = x - fx;
+      const dy = y - fy;
+      if (dx >= 0 && dx < 7 && dy >= 0 && dy < 7) {
+        return dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4);
+      }
+    }
+    return false;
+  };
+  let rects = "";
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const on = finder(x, y) ? inFinder(x, y) : rand() > 0.52;
+      if (on) rects += `<rect x="${x + 2}" y="${y + 2}" width="1" height="1"/>`;
+    }
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size + 4} ${size + 4}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><g fill="#000">${rects}</g></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 function startPair(number: string): { tenant: Tenant; pair: WhatsAppPair } {
   store.tenant.whatsappNumber = number;
   store.tenant.whatsappLinked = false;
@@ -966,7 +1002,7 @@ function startPair(number: string): { tenant: Tenant; pair: WhatsAppPair } {
   store.pair = {
     status: "waiting",
     number,
-    qrDataUrl: null,
+    qrDataUrl: demoQr(number),
     pairingCode: "K7M2-Q9P4",
     message: null,
     updatedAt: new Date().toISOString(),

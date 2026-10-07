@@ -3,11 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { api } from "../api.js";
 import { useAuth } from "../auth.js";
-import { COMPANY_SIZES, countryName, sortedCountryCodes } from "../business-profile.js";
+import { COMPANY_SIZES } from "../business-profile.js";
+import { CountrySelect } from "../CountrySelect.js";
 import type { MessageKey } from "../i18n.js";
-import { LocaleMenu, useLocale, useT } from "../locale.js";
-import { ThemeToggle } from "../theme.js";
-import { AuthHome, AuthStory } from "./Login.js";
+import { LocaleMenu, useT } from "../locale.js";
+import { AuthStory } from "./Login.js";
 
 type AccountKind = "individual" | "business";
 
@@ -15,7 +15,6 @@ export function SignupPage() {
   const { setMe } = useAuth();
   const navigate = useNavigate();
   const t = useT();
-  const { locale } = useLocale();
   const [accountKind, setAccountKind] = useState<AccountKind>("individual");
   const [businessName, setBusinessName] = useState("");
   const [email, setEmail] = useState("");
@@ -58,10 +57,8 @@ export function SignupPage() {
     <div className="auth">
       <AuthStory />
       <div className="auth-form">
-        <AuthHome />
         <div className="auth-toolbar">
           <LocaleMenu />
-          <ThemeToggle />
         </div>
         <form
           className="panel auth-card is-signup"
@@ -129,23 +126,10 @@ export function SignupPage() {
             />
           </label>
           <div className={isBusiness ? "row" : undefined}>
-            <label>
-              {t("common.country")}
-              <select
-                value={country}
-                onChange={(event) => setCountry(event.target.value)}
-                required
-              >
-                <option value="" disabled>
-                  {t("common.selectCountry")}
-                </option>
-                {sortedCountryCodes(locale).map((code) => (
-                  <option key={code} value={code}>
-                    {countryName(code, locale)}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="field">
+              <span>{t("common.country")}</span>
+              <CountrySelect value={country} onChange={setCountry} required />
+            </div>
             {isBusiness ? (
               <label>
                 {t("auth.companySize")}

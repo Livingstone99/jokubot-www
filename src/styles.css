@@ -136,11 +136,6 @@ img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: grayscale(1) contrast(1.15);
-}
-
-[data-theme="dark"] .mark .jokubot-mark {
-  filter: grayscale(1) contrast(1.15) invert(1);
 }
 
 .hint {
@@ -183,6 +178,12 @@ img {
 
 .primary:hover {
   transform: translateY(-1px);
+}
+
+/* Bouton affiché sans lien : pas d'effet de clic. */
+.primary.is-static {
+  cursor: default;
+  transform: none;
 }
 
 .secondary {
@@ -1435,8 +1436,60 @@ img {
 }
 
 @media (max-width: 560px) {
+  /* En-tête compact : tout tient sur une ligne jusqu'à 320 px.
+     Le lien Docs reste accessible dans le menu. */
+  .land-nav {
+    gap: 12px;
+    height: 60px;
+    padding: 0 16px;
+  }
+
+  .land-brand .wordmark {
+    font-size: 17px;
+  }
+
+  .land-nav-actions {
+    gap: 8px;
+  }
+
+  .land-nav-actions .land-docs-link {
+    display: none;
+  }
+
+  .land-nav-actions .locale-menu-trigger {
+    padding: 0 10px;
+  }
+
   .land-hero-copy h1 {
     font-size: 32px;
+  }
+
+  /* Cartes plus compactes : pas de hauteur minimale ni de marges
+     de paragraphe qui créent des vides sur un écran étroit. */
+  .fact-card,
+  .quote-card {
+    min-height: 0;
+  }
+
+  .quote-card {
+    gap: 20px;
+  }
+
+  .pricing-card {
+    gap: 14px;
+  }
+
+  .pricing-card .pricing-name,
+  .pricing-card .pricing-price {
+    margin: 0;
+  }
+
+  .pricing-tag:empty {
+    display: none;
+  }
+
+  .land-hero-video {
+    height: min(46vh, 380px);
   }
 
   .land-section {
