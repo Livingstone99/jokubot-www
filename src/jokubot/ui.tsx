@@ -23,6 +23,11 @@ import { setLang, setTheme, t, useLang, useTheme } from "./prefs.js";
 /* ------------------------------ Icônes ------------------------------ */
 
 const PATHS = {
+  home: "M3 11l9-8 9 8M5 9.5V21h5v-6h4v6h5V9.5",
+  mic: "M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
+  video: "M3 6h12v12H3zM15 10l6-3v10l-6-3",
+  news: "M4 5h13v14H6a2 2 0 0 1-2-2V5zM17 9h3v8a2 2 0 0 1-2 2M7 9h7M7 13h7M7 16h4",
+  refresh: "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7",
   plug: "M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0V7zM12 17v5",
   chat: "M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-5A8 8 0 1 1 21 12z",
   engine: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",

@@ -4,18 +4,20 @@ import { useCallback, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import { useDb } from "./db.js";
+import { SupportChat } from "./Support.js";
 import { t } from "./prefs.js";
 import { AppLink, Icon, PrefsControls, ReloadProvider, type IconName } from "./ui.js";
 
 const NAV: { to: string; label: string; icon: IconName }[] = [
-  { to: "/", label: "Connexions", icon: "plug" },
-  { to: "/conversations", label: "Conversations", icon: "chat" },
-  { to: "/moteurs", label: "Services", icon: "engine" },
+  { to: "/accueil", label: "Accueil", icon: "home" },
   { to: "/compte", label: "Compte", icon: "user" },
 ];
 
+// Connexions n'a plus d'entrée dans le menu : on y va depuis sa carte de l'Accueil.
 function isActive(pathname: string, to: string) {
-  return to === "/" ? pathname === "/" || pathname.startsWith("/connecter") || pathname.startsWith("/reseaux") : pathname.startsWith(to);
+  if (to === "/accueil")
+    return pathname === "/" || ["/accueil", "/connecter", "/reseaux", "/audio", "/images", "/videos", "/actualites"].some((p) => pathname.startsWith(p));
+  return pathname.startsWith(to);
 }
 
 export function Brand() {
@@ -104,6 +106,8 @@ export function Shell() {
         <main id="contenu" className="main" tabIndex={-1} key={reloadKey}>
           <Outlet />
         </main>
+
+        <SupportChat />
 
         <nav className="tabbar" aria-label={t("Menu principal")}>
           <ul className="tab-list">{links("tab")}</ul>

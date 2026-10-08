@@ -140,6 +140,8 @@ export type DB = {
   campaigns: Campaign[];
   socialPosts: SocialPost[];
   socialPrefs: Partial<Record<SocialId, SocialPrefs>>;
+  /** Compte PostFast relié avec une clé API : il donne accès aux réseaux sociaux. */
+  postfast: { connected: boolean; since: string; networks: SocialId[] } | null;
 };
 
 const KEY = "jokubot.demo.v1";
@@ -172,6 +174,7 @@ function emptyDb(): DB {
     campaigns: [],
     socialPosts: [],
     socialPrefs: {},
+    postfast: null,
   };
 }
 

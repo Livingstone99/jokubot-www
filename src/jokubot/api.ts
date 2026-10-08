@@ -207,35 +207,114 @@ export function removeSocialPost(id: string) {
   200);
 }
 
-let telegram: { phone: string; needPassword: boolean } | null = null;
+/* PostFast : une clé API donne accès à tous les réseaux sociaux reliés. */
 
-export function telegramSendCode(phone: string) {
-  return call(() => {
-    // En démonstration, un numéro qui finit par 0 a un mot de passe Telegram.
-    telegram = { phone, needPassword: phone.replace(/\D/g, "").endsWith("0") };
-  }, 700);
+/** Clé de démonstration, pour essayer sans compte PostFast. */
+export const POSTFAST_DEMO_KEY = "pf_demo_jokubot";
+
+const POSTFAST_PLATFORMS: Record<string, SocialId> = {
+  FACEBOOK: "facebook",
+  INSTAGRAM: "instagram",
+  X: "x",
+  TIKTOK: "tiktok",
+};
+
+type PostFastAccount = {
+  id: string;
+  platform: string;
+  platformUsername: string | null;
+  displayName: string | null;
+  connectionStatus: "CONNECTED" | "DISABLED";
+};
+
+/**
+ * Vérifie la clé API PostFast et relie tous les réseaux sociaux connectés dans
+ * PostFast. La clé n'est pas gardée dans le navigateur.
+ */
+export async function postfastConnect(apiKey: string): Promise<{ networks: SocialId[] }> {
+  const key = apiKey.trim();
+  let accounts: PostFastAccount[];
+  if (key === POSTFAST_DEMO_KEY) {
+    await wait(900);
+    accounts = (Object.keys(POSTFAST_PLATFORMS) as string[]).map((platform, i) => ({
+      id: `demo-${i}`,
+      platform,
+      platformUsername: platform === "FACEBOOK" ? null : DEMO_ACCOUNT[POSTFAST_PLATFORMS[platform] as SocialId].replace(/^@/, ""),
+      displayName: "Boutique Awa",
+      connectionStatus: "CONNECTED",
+    }));
+  } else {
+    let response: Response;
+    try {
+      // Relais du serveur de développement (voir vite.config.ts).
+      response = await fetch(`${import.meta.env.BASE_URL}postfast/social-media/my-social-accounts`, { headers: { "pf-api-key": key } });
+    } catch {
+      throw new ApiError("PostFast ne répond pas. Vérifiez votre connexion internet, puis réessayez.");
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new ApiError("PostFast refuse cette clé. Copiez-la de nouveau dans Workspace Settings, sans espace.", "apiKey");
+    }
+    const data = (await response.json().catch(() => null)) as PostFastAccount[] | null;
+    if (!response.ok || !Array.isArray(data)) {
+      throw new ApiError("La vérification de la clé n'est pas disponible ici. Lancez JokuBot en local, ou réessayez plus tard.");
+    }
+    accounts = data;
+  }
+  const found: SocialId[] = [];
+  update((draft) => {
+    const now = new Date().toISOString();
+    for (const account of accounts) {
+      const network = POSTFAST_PLATFORMS[account.platform];
+      if (!network || account.connectionStatus !== "CONNECTED" || found.includes(network)) continue;
+      found.push(network);
+      const label = account.platformUsername ? `@${account.platformUsername.replace(/^@/, "")}` : (account.displayName ?? network);
+      draft.connections[network] = { connected: true, account: label, since: draft.connections[network]?.since ?? now };
+      if (!draft.socialPosts.some((p) => p.network === network)) draft.socialPosts.unshift(...mockPosts(network));
+    }
+    draft.postfast = { connected: true, since: now, networks: found };
+  });
+  return { networks: found };
 }
 
-export function telegramVerify(code: string) {
-  return call(() => {
-    if (!telegram) throw new ApiError("Le code a expiré. Revenez en arrière pour en recevoir un nouveau.");
-    if (code !== "12345") {
-      throw new ApiError("Ce code n'est pas le bon. Recopiez le code reçu dans Telegram (en démonstration : 12345).", "code");
-    }
-    if (telegram.needPassword) return { needPassword: true };
-    connect("telegram", telegram.phone);
-    return { needPassword: false };
-  }, 600);
+export function postfastDisconnect() {
+  return call(() =>
+    update((draft) => {
+      draft.postfast = null;
+    }),
+  );
 }
 
-export function telegramPassword(password: string) {
-  return call(() => {
-    if (!telegram) throw new ApiError("Le code a expiré. Revenez en arrière pour en recevoir un nouveau.");
-    if (password.length < 4) {
-      throw new ApiError("Ce mot de passe est refusé par Telegram. C'est celui de la « validation en deux étapes ».", "password");
+/* Telegram : bot créé avec BotFather. */
+
+/** Jeton de démonstration, pour essayer sans créer de vrai bot. */
+export const TELEGRAM_DEMO_TOKEN = "123456789:DEMO-jokubot";
+
+/**
+ * Vérifie le jeton auprès de Telegram (méthode getMe de l'API Bot) et enregistre
+ * le nom du bot. Le jeton n'est pas gardé dans le navigateur : en production,
+ * c'est le serveur JokuBot qui le conservera.
+ */
+export async function telegramBotConnect(token: string): Promise<{ username: string; name: string }> {
+  const clean = token.trim();
+  let bot: { username: string; name: string };
+  if (clean === TELEGRAM_DEMO_TOKEN) {
+    await wait(700);
+    bot = { username: "BoutiqueAwaBot", name: "Boutique Awa" };
+  } else {
+    let response: Response;
+    try {
+      response = await fetch(`https://api.telegram.org/bot${encodeURIComponent(clean)}/getMe`);
+    } catch {
+      throw new ApiError("Telegram ne répond pas. Vérifiez votre connexion internet, puis réessayez.");
     }
-    connect("telegram", telegram.phone);
-  }, 600);
+    const data = (await response.json().catch(() => null)) as { ok?: boolean; result?: { username?: string; first_name?: string } } | null;
+    if (!response.ok || !data?.ok || !data.result?.username) {
+      throw new ApiError("Telegram refuse ce jeton. Recopiez-le en entier depuis BotFather, sans espace.", "token");
+    }
+    bot = { username: data.result.username, name: data.result.first_name ?? data.result.username };
+  }
+  connect("telegram", `@${bot.username}`);
+  return bot;
 }
 
 /* ---------------------------- Moteurs ---------------------------- */

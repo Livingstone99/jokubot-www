@@ -234,94 +234,78 @@ export const whatsappFlow: FlowDef = {
 
 /* ------------------------------ Telegram ------------------------------ */
 
-function ResendCode({ values }: { values: Values }) {
-  const [left, setLeft] = useState(30);
-  const [sending, setSending] = useState(false);
-  const toast = useToast();
-  useEffect(() => {
-    if (left <= 0) return;
-    const timer = window.setTimeout(() => setLeft((l) => l - 1), 1000);
-    return () => window.clearTimeout(timer);
-  }, [left]);
-  if (values._needPw === "oui") return null;
+const BOTFATHER_URL = "https://t.me/BotFather";
+
+function BotFatherLink() {
   return (
-    <p className="resend">
-      {t("Pas de code ?")}{" "}
-      <button
-        type="button"
-        className="link-btn"
-        disabled={left > 0 || sending}
-        onClick={async () => {
-          setSending(true);
-          await api.telegramSendCode(phoneLabel(values));
-          setSending(false);
-          setLeft(30);
-          toast(t("Nouveau code envoyé dans Telegram"));
-        }}
-      >
-        {left > 0 ? t("Renvoyer le code ({n} s)", { n: left }) : sending ? t("Envoi…") : t("Renvoyer le code")}
-      </button>
-    </p>
+    <div className="link-box">
+      <a className="btn btn-primary btn-block" href={BOTFATHER_URL} target="_blank" rel="noreferrer">
+        <Icon name="external" size={18} />
+        {t("Ouvrir BotFather dans Telegram")}
+      </a>
+      <ol className="howto">
+        <li>
+          <Rich text="Dans Telegram, écrivez à **BotFather** (le compte officiel, avec la coche bleue)." />
+        </li>
+        <li>
+          <Rich text="Envoyez **/newbot**, puis donnez un nom à votre bot, par exemple Boutique Awa." />
+        </li>
+        <li>
+          <Rich text="Choisissez un identifiant qui finit par **bot**, par exemple BoutiqueAwaBot." />
+        </li>
+        <li>{t("BotFather vous envoie un jeton qui ressemble à 123456789:AAH… : copiez-le.")}</li>
+      </ol>
+    </div>
   );
 }
 
 export const telegramFlow: FlowDef = {
   title: "Connecter Telegram",
-  description: "Telegram vous envoie un code de confirmation. Gardez l'application ouverte.",
+  description: "Créez votre bot Telegram avec BotFather, puis collez son jeton : JokuBot répondra à vos clients avec ce bot.",
   back: BACK,
-  initial: { phone: { dial: "+225", number: "" }, code: "", password: "", _needPw: "" },
+  initial: { token: "", _bot: "" },
   steps: [
     {
-      id: "numero",
-      label: "Numéro",
-      title: "Quel est votre numéro Telegram ?",
-      help: "Le numéro de votre compte Telegram. Vous allez recevoir un code dans l'application.",
-      fields: [{ kind: "phone", name: "phone", label: "Numéro Telegram" }],
-      submitLabel: "Recevoir le code",
-      onSubmit: async (values) => {
-        await api.telegramSendCode(phoneLabel(values));
-        return { patch: { _needPw: "", code: "", password: "" } };
-      },
+      id: "botfather",
+      label: "BotFather",
+      title: "Créez votre bot avec BotFather",
+      render: () => <BotFatherLink />,
+      submitLabel: "J'ai copié le jeton",
     },
     {
-      id: "code",
-      label: "Code reçu",
-      title: (values) => (values._needPw === "oui" ? "Votre mot de passe Telegram" : "Saisissez le code reçu"),
-      help: (values) =>
-        values._needPw === "oui" ? (
-          "Votre compte est protégé par la validation en deux étapes. Saisissez ce mot de passe pour terminer."
-        ) : (
-          <>
-            {t("Telegram vient d'envoyer un code à 5 chiffres dans l'application, sur le {numero}.", { numero: phoneLabel(values) })}{" "}
-            <span className="demo-note">{t("En démonstration, le code est 12345.")}</span>
-          </>
-        ),
+      id: "jeton",
+      label: "Jeton du bot",
+      title: "Collez le jeton du bot",
       fields: [
-        { kind: "code", name: "code", label: "Code à 5 chiffres", length: 5, when: (v) => v._needPw !== "oui" },
         {
           kind: "secret",
-          name: "password",
-          label: "Mot de passe Telegram",
-          autoComplete: "current-password",
-          required: "Saisissez le mot de passe de votre compte Telegram.",
-          when: (v) => v._needPw === "oui",
+          name: "token",
+          label: "Jeton du bot",
+          placeholder: "123456789:AAH…",
+          required: "Collez le jeton que BotFather vous a envoyé.",
+          validate: (value) =>
+            /^\d{5,}:[A-Za-z0-9_-]{5,}$/.test(str(value).trim())
+              ? null
+              : "Ce jeton semble incomplet. Il ressemble à 123456789:AAH… : copiez-le en entier depuis BotFather.",
         },
       ],
-      after: ({ values }) => <ResendCode values={values} />,
-      submitLabel: (values) => (values._needPw === "oui" ? "Valider" : "Vérifier le code"),
+      submitLabel: "Connecter Telegram",
       onSubmit: async (values) => {
-        if (values._needPw === "oui") {
-          await api.telegramPassword(str(values.password));
-          return;
-        }
-        const result = await api.telegramVerify(str(values.code));
-        if (result.needPassword) return { patch: { _needPw: "oui" }, stay: true };
+        const bot = await api.telegramBotConnect(str(values.token));
+        return { patch: { _bot: bot.username } };
       },
     },
   ],
   done: {
     title: "Telegram est connecté",
-    text: (values) => t("JokuBot répond maintenant à vos clients Telegram sur le {numero}.", { numero: phoneLabel(values) }),
+    text: (values) => (
+      <>
+        {t("Vos clients peuvent écrire à votre bot : JokuBot leur répond.")}{" "}
+        <a href={`https://t.me/${str(values._bot)}`} target="_blank" rel="noreferrer">
+          t.me/{str(values._bot)}
+        </a>
+      </>
+    ),
     primary: { label: "Apprendre mon activité à JokuBot", to: "/conversations" },
     secondary: { label: "Retour aux connexions", to: "/" },
   },
@@ -521,6 +505,76 @@ function socialFlow(id: SocialId): FlowDef {
     },
   };
 }
+
+/* ------------------- PostFast : tous les réseaux sociaux ------------------- */
+
+const POSTFAST_URL = "https://app.postfa.st";
+
+function PostFastLink() {
+  return (
+    <div className="link-box">
+      <a className="btn btn-primary btn-block" href={POSTFAST_URL} target="_blank" rel="noreferrer">
+        <Icon name="external" size={18} />
+        {t("Ouvrir PostFast")}
+      </a>
+      <ol className="howto">
+        <li>{t("Créez votre compte PostFast, ou connectez-vous.")}</li>
+        <li>{t("Connectez vos réseaux dans PostFast : Facebook, Instagram, X, TikTok…")}</li>
+        <li>
+          <Rich text="Dans **Workspace Settings**, créez une **clé API** et copiez-la." />
+        </li>
+      </ol>
+    </div>
+  );
+}
+
+const SOCIAL_NAMES: Record<SocialId, string> = { facebook: "Facebook", instagram: "Instagram", x: "X", tiktok: "TikTok" };
+
+export const postfastFlow: FlowDef = {
+  title: "Connecter PostFast",
+  description: "Une seule connexion pour tous vos réseaux sociaux.",
+  back: BACK,
+  initial: { apiKey: "", _found: [] },
+  steps: [
+    {
+      id: "postfast",
+      label: "PostFast",
+      title: "Connectez vos réseaux dans PostFast",
+      render: () => <PostFastLink />,
+      submitLabel: "J'ai copié la clé",
+    },
+    {
+      id: "cle",
+      label: "Clé API",
+      title: "Collez votre clé API PostFast",
+      fields: [
+        {
+          kind: "secret",
+          name: "apiKey",
+          label: "Clé API PostFast",
+          required: "Collez la clé API copiée dans PostFast.",
+          validate: (value) => (str(value).trim().length >= 8 ? null : "Cette clé semble incomplète : copiez-la en entier depuis PostFast."),
+        },
+      ],
+      submitLabel: "Connecter mes réseaux",
+      onSubmit: async (values) => {
+        const { networks } = await api.postfastConnect(str(values.apiKey));
+        return { patch: { _found: networks, apiKey: "" } };
+      },
+    },
+  ],
+  done: {
+    title: "PostFast est connecté",
+    text: (values) => {
+      const found = list(values._found) as SocialId[];
+      return found.length
+        ? t("Réseaux reliés : {reseaux}.", { reseaux: found.map((id) => SOCIAL_NAMES[id]).join(", ") })
+        : t("Aucun réseau n'est encore relié dans PostFast. Connectez-les dans PostFast, puis recommencez.");
+    },
+    primary: { label: "Voir mes réseaux", to: "/" },
+    secondary: { label: "Apprendre mon activité à JokuBot", to: "/conversations" },
+  },
+};
 
 export const CHANNEL_FLOWS: Partial<Record<NetworkId, FlowDef>> = {
   whatsapp: whatsappFlow,
