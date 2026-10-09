@@ -1030,15 +1030,39 @@ button {
   margin-top: 0;
 }
 
+/* Les trois cartes (WhatsApp, Telegram, PostFast) ont la même taille :
+   une grille à colonnes égales, les messageries en occupent deux. */
+.connect-top > .net-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.connect-top .net-grid,
+.connect-top .postfast-card {
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .connect-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s4);
+  }
+
+  .connect-top > .net-group:first-child {
+    grid-column: span 2;
+  }
+}
+
 @media (min-width: 1100px) {
   .connect-top {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--s5);
-    align-items: start;
+    align-items: stretch;
   }
 
   .net-grid.net-grid-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s5);
   }
 }
 
@@ -1052,8 +1076,7 @@ button {
   flex-direction: column;
   align-items: center;
   gap: var(--s2);
-  max-width: 320px;
-  padding: var(--s3);
+  padding: var(--s5);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   background: var(--surface);
@@ -1073,7 +1096,7 @@ button {
 
 .postfast-card .net-state {
   align-self: flex-end;
-  margin: 0;
+  margin: calc(var(--s2) * -1) calc(var(--s2) * -1) 0 0;
 }
 
 .postfast-logos {
@@ -1083,13 +1106,10 @@ button {
 }
 
 .postfast-logo {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: var(--on-ink);
+  object-fit: contain;
 }
 
 .postfast-name {
@@ -1103,12 +1123,7 @@ button {
 }
 
 .postfast-card .btn {
-  margin-top: var(--s1);
-}
-
-.postfast-logo svg {
-  width: 16px;
-  height: 16px;
+  margin-top: auto;
 }
 
 /* ---------------------- Réseaux sociaux (PostFast) ---------------------- */
@@ -1416,6 +1431,11 @@ button {
 .net-card.is-clickable {
   position: relative;
   cursor: pointer;
+}
+
+/* Bouton en bas, même quand la carte est étirée à la hauteur des autres. */
+.net-card .net-cta {
+  margin-top: auto;
 }
 
 .net-card .net-cta::after {
