@@ -39,6 +39,71 @@ export async function translate(text: string, from: LangCode, to: LangCode): Pro
   return result;
 }
 
+/** Traduit un texte plus long que MAX_CHARS, phrase par phrase, en plusieurs appels. */
+async function translateLong(text: string, from: LangCode, to: LangCode): Promise<string> {
+  const parts: string[] = [];
+  let part = "";
+  for (const sentence of text.match(/[^.!?]+[.!?]*\s*/g) ?? [text]) {
+    if (part && (part + sentence).length > MAX_CHARS) {
+      parts.push(part);
+      part = "";
+    }
+    part += sentence.slice(0, MAX_CHARS);
+  }
+  if (part.trim()) parts.push(part);
+  const done = await Promise.all(parts.map((p) => translate(p.trim(), from, to)));
+  return done.join(" ");
+}
+
+/* --------------------------- Voix clonée --------------------------- */
+// Le serveur JokuBot (VITE_VOICE_API) reçoit l'enregistrement, clone la voix,
+// traduit et renvoie l'audio dans la langue choisie. Sans serveur, la page
+// fonctionne en aperçu : texte traduit ici, lu avec la voix de l'appareil.
+
+const VOICE_API = import.meta.env.VITE_VOICE_API;
+
+/** Démo de la page Audio : la même phrase dans chaque langue, sans micro ni réseau. */
+export const DEMO_TEXT: Record<LangCode, string> = {
+  fr: "Bonjour, votre commande est prête. Vous pouvez venir la récupérer dès aujourd'hui.",
+  en: "Hello, your order is ready. You can come and pick it up today.",
+  es: "Hola, su pedido está listo. Puede venir a recogerlo hoy mismo.",
+  pt: "Olá, a sua encomenda está pronta. Pode vir buscá-la ainda hoje.",
+  ar: "مرحبًا، طلبك جاهز. يمكنك الحضور لاستلامه اليوم.",
+  de: "Hallo, Ihre Bestellung ist fertig. Sie können sie noch heute abholen.",
+  zh: "您好，您的订单已准备好。您今天就可以来取。",
+};
+
+/** true quand le serveur de voix clonée est branché. */
+export const voiceReady = Boolean(VOICE_API);
+
+/** `audio` : vos mots dans la langue choisie, avec votre voix. null en aperçu. */
+export type VoiceResult = { text: string; translation: string; audio: Blob | null };
+
+export async function voiceTranslate(recording: File, text: string, from: LangCode, to: LangCode): Promise<VoiceResult> {
+  if (VOICE_API) {
+    const body = new FormData();
+    body.append("audio", recording);
+    body.append("text", text);
+    body.append("from", from);
+    body.append("to", to);
+    let data: { text?: string; translation?: string; audioUrl?: string };
+    try {
+      const response = await fetch(`${VOICE_API.replace(/\/$/, "")}/voice/translate`, { method: "POST", body });
+      if (!response.ok) throw new Error(String(response.status));
+      data = await response.json();
+    } catch {
+      throw new TranslateError("JokuBot n'a pas pu créer votre voix. Réessayez dans un instant.");
+    }
+    if (!data.audioUrl) throw new TranslateError("JokuBot n'a pas pu créer votre voix. Réessayez dans un instant.");
+    const audio = await fetch(data.audioUrl).then((r) => r.blob());
+    return { text: data.text || text, translation: data.translation || "", audio };
+  }
+
+  if (!text.trim()) throw new TranslateError("JokuBot n'a pas entendu de parole. Parlez plus près du micro, puis réessayez.");
+  const translation = from === to ? text : await translateLong(text, from, to);
+  return { text, translation, audio: null };
+}
+
 /** Lit le texte à voix haute, avec une voix de la langue si l'appareil en a une. */
 export function speak(text: string, code: LangCode) {
   if (!("speechSynthesis" in window)) return false;

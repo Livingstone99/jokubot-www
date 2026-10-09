@@ -10,13 +10,14 @@ import { AppLink, Icon, PrefsControls, ReloadProvider, type IconName } from "./u
 
 const NAV: { to: string; label: string; icon: IconName }[] = [
   { to: "/accueil", label: "Accueil", icon: "home" },
+  { to: "/actualites", label: "Actualités", icon: "news" },
   { to: "/compte", label: "Compte", icon: "user" },
 ];
 
 // Connexions n'a plus d'entrée dans le menu : on y va depuis sa carte de l'Accueil.
 function isActive(pathname: string, to: string) {
   if (to === "/accueil")
-    return pathname === "/" || ["/accueil", "/connecter", "/reseaux", "/audio", "/images", "/videos", "/actualites"].some((p) => pathname.startsWith(p));
+    return pathname === "/" || ["/accueil", "/connecter", "/reseaux", "/audio"].some((p) => pathname.startsWith(p));
   return pathname.startsWith(to);
 }
 

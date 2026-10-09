@@ -54,6 +54,7 @@ const PATHS = {
   play: "M7 4.5v15l12-7.5z",
   image: "M4 5h16v14H4zM4 16l5-5 4 4 2-2 5 5M15.5 9.5a1.5 1.5 0 1 0 0-.01",
   text: "M5 6h14M5 11h14M5 16h9",
+  swap: "M7 4L3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7",
   globe: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z",
 } as const;
 
@@ -83,6 +84,12 @@ export function Icon({ name, size = 20, className }: { name: IconName; size?: nu
 
 export function Monogram({ id, filled, size = "lg" }: { id: NetworkId; filled: boolean; size?: "lg" | "sm" }) {
   const info = network(id);
+  if (info.logo)
+    return (
+      <span className={`mono mono-${size} mono-logo`} aria-hidden="true">
+        <img src={`${import.meta.env.BASE_URL}${info.logo}`} alt="" />
+      </span>
+    );
   return (
     <span className={`mono mono-${size}${filled ? " is-filled" : ""}`} aria-hidden="true">
       {isSocial(id) ? <SocialLogo id={id} size={size === "lg" ? 24 : 14} /> : <span>{info.mono}</span>}

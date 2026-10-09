@@ -11,8 +11,6 @@ import { ConversationsPage } from "./pages/Conversations.js";
 import { EngineSpacePage } from "./pages/EngineSpace.js";
 import { EnginesPage } from "./pages/Engines.js";
 import { HomePage } from "./pages/Home.js";
-import { ImagesPage } from "./pages/Images.js";
-import { VideosPage } from "./pages/Videos.js";
 import { NewsPage } from "./pages/News.js";
 import { NetworkPage } from "./pages/Network.js";
 import { WelcomePage } from "./pages/Welcome.js";
@@ -50,8 +48,6 @@ export function App() {
               <Route index element={<ConnectionsPage />} />
               <Route path="accueil" element={<HomePage />} />
               <Route path="audio" element={<AudioPage />} />
-              <Route path="images" element={<ImagesPage />} />
-              <Route path="videos" element={<VideosPage />} />
               <Route path="actualites" element={<NewsPage />} />
               <Route path="connecter/:network" element={<ConnectionsPage />} />
               <Route path="reseaux/:id" element={<NetworkPage />} />

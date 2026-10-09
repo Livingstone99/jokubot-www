@@ -1,44 +1,41 @@
-// Audio : enregistrer un message, le traduire, l'envoyer sur WhatsApp.
+// Audio : vous parlez, JokuBot clone votre voix et répète vos mots dans la langue choisie.
 
 import { useEffect, useRef, useState } from "react";
 
-import { createRecognition, lang, LANGS, MAX_CHARS, speak, translate, TranslateError, type LangCode } from "../audio.js";
+import { createRecognition, DEMO_TEXT, lang, LANGS, speak, TranslateError, voiceReady, voiceTranslate, type LangCode, type VoiceResult } from "../audio.js";
 import { t } from "../prefs.js";
-import { Icon, PageHeader, Spinner } from "../ui.js";
+import { Icon, PageHeader, Spinner, useToast } from "../ui.js";
 
 const MAX_SECONDS = 120;
+/** Temps minimum par étape, pour que l'on voie JokuBot avancer. */
+const STEP_MS = 900;
 
-type Result = { code: LangCode; text: string };
+type Phase = "idle" | "recording" | "working" | "done";
+type Recording = { url: string; file: File };
 
 function clock(seconds: number) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-function whatsappUrl(phone: string, text: string) {
-  return `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
-}
-
 export function AudioPage() {
   const [from, setFrom] = useState<LangCode>("fr");
-  const [recording, setRecording] = useState(false);
+  const [to, setTo] = useState<LangCode>("en");
+  const [phase, setPhase] = useState<Phase>("idle");
   const [seconds, setSeconds] = useState(0);
-  const [audio, setAudio] = useState<{ url: string; file: File } | null>(null);
-  const [text, setText] = useState("");
-  const [interim, setInterim] = useState("");
-  const [micError, setMicError] = useState("");
-  const [targets, setTargets] = useState<LangCode[]>(["en"]);
-  const [results, setResults] = useState<Result[]>([]);
-  const [translating, setTranslating] = useState(false);
-  const [translateError, setTranslateError] = useState("");
-  const [phone, setPhone] = useState("");
+  const [heard, setHeard] = useState("");
+  const [step, setStep] = useState(0);
+  const [error, setError] = useState("");
+  const [original, setOriginal] = useState<Recording | null>(null);
+  const [result, setResult] = useState<(VoiceResult & { url: string | null; to: LangCode; demo?: boolean }) | null>(null);
 
   const recorder = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
   const recognition = useRef<ReturnType<typeof createRecognition>>(null);
   const timer = useRef<number | undefined>(undefined);
   const live = useRef(false);
+  const said = useRef("");
   const canDictate = useRef(createRecognition() !== null).current;
-  const canShareFiles = typeof navigator !== "undefined" && "canShare" in navigator;
+  const toast = useToast();
 
   useEffect(() => {
     document.title = `${t("Audio")} · JokuBot`;
@@ -57,26 +54,32 @@ export function AudioPage() {
     [],
   );
 
-  useEffect(() => () => (audio ? URL.revokeObjectURL(audio.url) : undefined), [audio]);
+  useEffect(() => () => (original ? URL.revokeObjectURL(original.url) : undefined), [original]);
+  useEffect(() => () => (result?.url ? URL.revokeObjectURL(result.url) : undefined), [result]);
 
   useEffect(() => {
-    if (recording && seconds >= MAX_SECONDS) stop();
-  }, [recording, seconds]);
+    if (phase === "recording" && seconds >= MAX_SECONDS) stop();
+  }, [phase, seconds]);
 
   const start = async () => {
-    setMicError("");
+    setError("");
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      setMicError(t("Ce navigateur ne sait pas enregistrer. Ouvrez la page dans Chrome, Edge ou Safari, ou écrivez votre message ci-dessous."));
+      setError(t("Ce navigateur ne sait pas enregistrer. Ouvrez la page dans Chrome, Edge ou Safari."));
       return;
     }
     let media: MediaStream;
     try {
       media = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      setMicError(t("JokuBot n'a pas accès au micro. Autorisez le micro dans les réglages du navigateur, puis réessayez."));
+      setError(t("JokuBot n'a pas accès au micro. Autorisez le micro dans les réglages du navigateur, puis réessayez."));
       return;
     }
     stream.current = media;
+    said.current = "";
+    setHeard("");
+    setResult(null);
+    setOriginal(null);
+
     const chunks: Blob[] = [];
     const rec = new MediaRecorder(media);
     rec.ondataavailable = (event) => {
@@ -86,27 +89,27 @@ export function AudioPage() {
       const type = rec.mimeType || "audio/webm";
       const ext = type.includes("mp4") ? "m4a" : type.includes("ogg") ? "ogg" : "webm";
       const blob = new Blob(chunks, { type });
-      setAudio({ url: URL.createObjectURL(blob), file: new File([blob], `message-jokubot.${ext}`, { type }) });
+      const recording = { url: URL.createObjectURL(blob), file: new File([blob], `voix-jokubot.${ext}`, { type }) };
+      setOriginal(recording);
+      void process(recording);
     };
     rec.start();
     recorder.current = rec;
 
-    // Dictée en même temps : le texte s'écrit pendant que vous parlez.
+    // Dictée en même temps : vos mots s'affichent pendant que vous parlez.
     const dictation = createRecognition();
     if (dictation) {
       dictation.lang = lang(from).voice;
       dictation.continuous = true;
       dictation.interimResults = true;
       dictation.onresult = (event) => {
-        let final = "";
         let pending = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i]!;
-          if (result.isFinal) final += result[0]!.transcript;
-          else pending += result[0]!.transcript;
+          const r = event.results[i]!;
+          if (r.isFinal) said.current = `${said.current} ${r[0]!.transcript.trim()}`.trim();
+          else pending += r[0]!.transcript;
         }
-        if (final) setText((prev) => `${prev}${prev && !prev.endsWith(" ") ? " " : ""}${final.trim()}`);
-        setInterim(pending);
+        setHeard(`${said.current} ${pending}`.trim());
       };
       // La dictée s'arrête d'elle-même après un silence : on la relance tant qu'on enregistre.
       dictation.onend = () => {
@@ -128,9 +131,8 @@ export function AudioPage() {
     }
 
     live.current = true;
-    setResults([]);
     setSeconds(0);
-    setRecording(true);
+    setPhase("recording");
     timer.current = window.setInterval(() => setSeconds((s) => s + 1), 1000);
   };
 
@@ -138,286 +140,281 @@ export function AudioPage() {
     live.current = false;
     recognition.current?.stop();
     recognition.current = null;
-    if (recorder.current?.state === "recording") recorder.current.stop();
-    stream.current?.getTracks().forEach((track) => track.stop());
     window.clearInterval(timer.current);
-    setInterim("");
-    setRecording(false);
+    stream.current?.getTracks().forEach((track) => track.stop());
+    setStep(0);
+    setPhase("working");
+    // La suite part de rec.onstop, quand l'enregistrement est prêt.
+    if (recorder.current?.state === "recording") recorder.current.stop();
   }
 
-  const restart = () => {
-    setAudio(null);
-    setText("");
-    setResults([]);
-    setTranslateError("");
-  };
-
-  const toggleTarget = (code: LangCode) =>
-    setTargets((list) => (list.includes(code) ? list.filter((c) => c !== code) : [...list, code]));
-
-  const chosen = targets.filter((code) => code !== from);
-  const message = text.trim();
-
-  const runTranslate = async () => {
-    setTranslateError("");
-    if (!message) return setTranslateError(t("Enregistrez ou écrivez d'abord votre message."));
-    if (!chosen.length) return setTranslateError(t("Choisissez au moins une langue."));
-    setTranslating(true);
+  /** Montre les étapes, puis le résultat. `make` fait le vrai travail (ou la démo). */
+  const run = async (make: () => Promise<VoiceResult>, demo = false) => {
+    const advance = window.setInterval(() => setStep((s) => Math.min(s + 1, 2)), STEP_MS);
     try {
-      const list = await Promise.all(chosen.map(async (code) => ({ code, text: await translate(message, from, code) })));
-      setResults(list);
-    } catch (error) {
-      setTranslateError(error instanceof TranslateError ? t(error.message) : t("La traduction n'a pas abouti. Réessayez dans un instant."));
+      const [made] = await Promise.all([
+        make(),
+        new Promise((resolve) => window.setTimeout(resolve, STEP_MS * 3)),
+      ]);
+      setResult({ ...made, url: made.audio ? URL.createObjectURL(made.audio) : null, to, demo });
+      setPhase("done");
+    } catch (err) {
+      setError(err instanceof TranslateError ? t(err.message) : t("JokuBot n'a pas pu créer votre voix. Réessayez dans un instant."));
+      setPhase("idle");
     } finally {
-      setTranslating(false);
+      window.clearInterval(advance);
     }
   };
 
-  const allInOne = results.map((r) => `${t(lang(r.code).name)} :\n${r.text}`).join("\n\n");
+  const process = async (recording: Recording) => {
+    // La dictée livre parfois ses derniers mots juste après l'arrêt.
+    await new Promise((resolve) => window.setTimeout(resolve, 400));
+    await run(() => voiceTranslate(recording.file, said.current, from, to));
+  };
 
-  const shareAudio = async (caption: string) => {
-    if (!audio) return;
-    const data = { files: [audio.file], text: caption };
-    if (navigator.canShare?.(data)) {
+  // Démo : le parcours complet avec une phrase d'exemple, sans parler.
+  const demo = () => {
+    setError("");
+    setResult(null);
+    setOriginal(null);
+    setStep(0);
+    setPhase("working");
+    void run(async () => ({ text: DEMO_TEXT[from], translation: DEMO_TEXT[to], audio: null }), true);
+  };
+
+  const restart = () => {
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    setResult(null);
+    setOriginal(null);
+    setHeard("");
+    setError("");
+    setPhase("idle");
+  };
+
+  const swap = () => {
+    setFrom(to);
+    setTo(from);
+  };
+
+  const target = t(lang(to).name);
+  const steps = [t("Clonage de votre voix"), t("Traduction en {langue}", { langue: target }), t("Création de l'audio")];
+
+  const resultFile =
+    result?.audio ? new File([result.audio], `voix-jokubot-${result.to}.mp3`, { type: result.audio.type || "audio/mpeg" }) : null;
+  const canShareFile = Boolean(resultFile && navigator.canShare?.({ files: [resultFile] }));
+
+  // On envoie l'audio avec la voix clonée, jamais le texte.
+  const sendAudio = async () => {
+    if (!result) return;
+    if (!resultFile || !result.url) {
+      toast(
+        result.demo
+          ? t("Démo : avec le serveur JokuBot, ce bouton envoie votre voix clonée sur WhatsApp.")
+          : t("L'envoi de votre voix clonée sera possible dès que le serveur JokuBot sera branché."),
+      );
+      return;
+    }
+    // Téléphone : la feuille de partage propose WhatsApp, l'audio part en note vocale.
+    if (canShareFile) {
       try {
-        await navigator.share(data);
+        await navigator.share({ files: [resultFile] });
       } catch {
         // Partage annulé.
       }
+      return;
     }
+    // Ordinateur : WhatsApp ne reçoit pas de fichier par lien. On télécharge l'audio et on ouvre WhatsApp Web.
+    const link = document.createElement("a");
+    link.href = result.url;
+    link.download = resultFile.name;
+    link.click();
+    window.open("https://web.whatsapp.com/", "_blank", "noreferrer");
+    toast(t("Audio téléchargé : glissez-le dans la discussion WhatsApp."));
   };
-  const audioShareable = Boolean(audio && canShareFiles && navigator.canShare?.({ files: [audio.file] }));
+
+  const busy = phase === "recording" || phase === "working";
 
   return (
     <div className="page page-narrow">
       <PageHeader
         title={t("Audio")}
-        subtitle={t("Enregistrez un message, JokuBot le traduit dans plusieurs langues et vous l'envoyez sur WhatsApp.")}
+        subtitle={t("Parlez dans votre langue : JokuBot répète vos mots dans la langue choisie, avec votre voix.")}
         back={{ to: "/accueil", label: t("Accueil") }}
       />
 
       <div className="audio-steps">
-        {/* 1. Le message */}
-        <section className="audio-box" aria-labelledby="audio-step-1">
-          <h2 id="audio-step-1" className="audio-step-title">
-            <span className="audio-step-num">1</span>
-            {t("Votre message")}
-          </h2>
-
-          <div className="field">
-            <label className="field-label" htmlFor="audio-from">
-              {t("Vous parlez en")}
-            </label>
-            <div className="select-wrap">
-              <select
-                id="audio-from"
-                className="input select"
-                value={from}
-                disabled={recording}
-                onChange={(event) => setFrom(event.target.value as LangCode)}
-              >
-                {LANGS.map((l) => (
-                  <option key={l.code} value={l.code}>
-                    {t(l.name)}
-                  </option>
-                ))}
-              </select>
-              <Icon name="chevron" size={18} className="select-icon" />
+        <section className="audio-box" aria-label={t("Langues")}>
+          <div className="voice-langs">
+            <div className="field">
+              <label className="field-label" htmlFor="voice-from">
+                {t("Vous parlez")}
+              </label>
+              <div className="select-wrap">
+                <select
+                  id="voice-from"
+                  className="input select"
+                  value={from}
+                  disabled={busy}
+                  onChange={(event) => setFrom(event.target.value as LangCode)}
+                >
+                  {LANGS.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {t(l.name)}
+                    </option>
+                  ))}
+                </select>
+                <Icon name="chevron" size={18} className="select-icon" />
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-ghost voice-swap"
+              onClick={swap}
+              disabled={busy}
+              aria-label={t("Inverser les langues")}
+              title={t("Inverser les langues")}
+            >
+              <Icon name="swap" size={20} />
+            </button>
+            <div className="field">
+              <label className="field-label" htmlFor="voice-to">
+                {t("Votre voix en")}
+              </label>
+              <div className="select-wrap">
+                <select
+                  id="voice-to"
+                  className="input select"
+                  value={to}
+                  disabled={busy}
+                  onChange={(event) => setTo(event.target.value as LangCode)}
+                >
+                  {LANGS.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {t(l.name)}
+                    </option>
+                  ))}
+                </select>
+                <Icon name="chevron" size={18} className="select-icon" />
+              </div>
             </div>
           </div>
 
-          <div className="audio-recorder">
-            {recording ? (
-              <button type="button" className="audio-rec is-on" onClick={stop} aria-label={t("Arrêter l'enregistrement")}>
+          {/* Le micro */}
+          <div className="voice-stage" aria-live="polite">
+            {phase === "recording" ? (
+              <button type="button" className="audio-rec voice-mic is-on" onClick={stop} aria-label={t("Arrêter l'enregistrement")}>
                 <span className="audio-rec-stop" aria-hidden="true" />
               </button>
             ) : (
-              <button type="button" className="audio-rec" onClick={() => void start()} aria-label={t("Enregistrer un audio")}>
-                <Icon name="mic" size={30} />
+              <button
+                type="button"
+                className="audio-rec voice-mic"
+                onClick={() => void start()}
+                disabled={phase === "working"}
+                aria-label={t("Parler")}
+              >
+                {phase === "working" ? <Spinner /> : <Icon name="mic" size={36} />}
               </button>
             )}
-            <div className="audio-rec-text" aria-live="polite">
-              {recording ? (
-                <>
-                  <p className="audio-rec-state">
-                    <span className="audio-live-dot" aria-hidden="true" />
-                    {t("Enregistrement…")} <span className="audio-clock">{clock(seconds)}</span>
-                  </p>
-                  <p className="field-hint">{t("Touchez le carré pour arrêter. 2 minutes au plus.")}</p>
-                </>
-              ) : audio ? (
-                <>
-                  <p className="audio-rec-state">{t("Message enregistré")}</p>
-                  <button type="button" className="link-btn" onClick={restart}>
-                    {t("Recommencer")}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className="audio-rec-state">{t("Touchez le micro et parlez")}</p>
-                  <p className="field-hint">{t("Votre voix est enregistrée et écrite en même temps.")}</p>
-                </>
-              )}
-            </div>
-          </div>
-          {micError ? (
-            <p className="field-error" role="alert">
-              {micError}
-            </p>
-          ) : null}
 
-          {audio && !recording ? <audio className="audio-player" controls src={audio.url} /> : null}
-
-          <div className="field">
-            <label className="field-label" htmlFor="audio-text">
-              {t("Texte du message")}
-            </label>
-            <textarea
-              id="audio-text"
-              className="input textarea"
-              value={recording && interim ? `${text} ${interim}`.trim() : text}
-              readOnly={recording}
-              maxLength={MAX_CHARS}
-              placeholder={t("Le texte apparaît ici pendant que vous parlez. Vous pouvez aussi l'écrire.")}
-              onChange={(event) => setText(event.target.value)}
-              aria-describedby="audio-text-hint"
-            />
-            <p id="audio-text-hint" className="field-hint">
-              {canDictate
-                ? t("Corrigez le texte si besoin : c'est lui qui est traduit.")
-                : t("Ce navigateur n'écrit pas la voix : écrivez votre message ici.")}{" "}
-              {t("{n} / {max} caractères.", { n: text.length, max: MAX_CHARS })}
-            </p>
-          </div>
-        </section>
-
-        {/* 2. Les langues */}
-        <section className="audio-box" aria-labelledby="audio-step-2">
-          <h2 id="audio-step-2" className="audio-step-title">
-            <span className="audio-step-num">2</span>
-            {t("Traduire en")}
-          </h2>
-          <div className="audio-langs" role="group" aria-labelledby="audio-step-2">
-            {LANGS.filter((l) => l.code !== from).map((l) => {
-              const on = targets.includes(l.code);
-              return (
-                <button
-                  key={l.code}
-                  type="button"
-                  className={`chip${on ? " is-on" : ""}`}
-                  aria-pressed={on}
-                  onClick={() => toggleTarget(l.code)}
-                >
-                  {on ? <Icon name="check" size={16} /> : null}
-                  {t(l.name)}
+            {phase === "recording" ? (
+              <>
+                <p className="audio-rec-state">
+                  <span className="audio-live-dot" aria-hidden="true" />
+                  {t("JokuBot vous écoute…")} <span className="audio-clock">{clock(seconds)}</span>
+                </p>
+                <p className="field-hint">{t("Touchez le carré quand vous avez fini.")}</p>
+              </>
+            ) : phase === "working" ? (
+              <p className="audio-rec-state">{t("JokuBot prépare votre voix en {langue}…", { langue: target })}</p>
+            ) : phase === "done" ? (
+              <p className="audio-rec-state">{t("Touchez le micro pour un nouveau message")}</p>
+            ) : (
+              <>
+                <p className="audio-rec-state">{t("Touchez le micro et parlez")}</p>
+                {canDictate || voiceReady ? null : (
+                  <p className="field-hint">{t("Ce navigateur n'écrit pas la voix : ouvrez la page dans Chrome ou Edge.")}</p>
+                )}
+                <button type="button" className="link-btn" onClick={demo}>
+                  {t("Voir une démo")}
                 </button>
-              );
-            })}
+              </>
+            )}
+
+            {phase === "recording" && heard ? <p className="voice-heard">« {heard} »</p> : null}
           </div>
-          <button
-            type="button"
-            className="btn btn-primary btn-block"
-            disabled={translating || recording}
-            aria-busy={translating}
-            onClick={() => void runTranslate()}
-          >
-            {translating ? <Spinner /> : <Icon name="globe" size={20} />}
-            {chosen.length > 1 ? t("Traduire en {n} langues", { n: chosen.length }) : t("Traduire")}
-          </button>
-          {translateError ? (
+
+          {phase === "working" ? (
+            <ol className="voice-progress">
+              {steps.map((label, i) => {
+                const state = i < step ? "is-done" : i === step ? "is-now" : "";
+                return (
+                  <li key={label} className={`voice-progress-step ${state}`}>
+                    <span className="voice-progress-dot" aria-hidden="true">
+                      {i < step ? <Icon name="check" size={14} /> : null}
+                    </span>
+                    {label}
+                  </li>
+                );
+              })}
+            </ol>
+          ) : null}
+
+          {error ? (
             <p className="field-error" role="alert">
-              {translateError}
+              {error}
             </p>
           ) : null}
         </section>
 
-        {/* 3. L'envoi */}
-        {results.length ? (
-          <section className="audio-box" aria-labelledby="audio-step-3">
-            <h2 id="audio-step-3" className="audio-step-title">
-              <span className="audio-step-num">3</span>
-              {t("Envoyer sur WhatsApp")}
+        {/* Le résultat */}
+        {phase === "done" && result ? (
+          <section className="audio-box" aria-labelledby="voice-result">
+            <h2 id="voice-result" className="audio-step-title">
+              {t("Votre voix en {langue}", { langue: t(lang(result.to).name) })}
+              {result.demo ? <span className="voice-demo-badge">{t("Démo")}</span> : null}
             </h2>
 
-            <div className="field">
-              <label className="field-label" htmlFor="audio-phone">
-                {t("Numéro WhatsApp du client")} <span className="field-optional">{t("(facultatif)")}</span>
-              </label>
-              <input
-                id="audio-phone"
-                className="input"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="+225 07 08 45 12 30"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                aria-describedby="audio-phone-hint"
-              />
-              <p id="audio-phone-hint" className="field-hint">
-                {t("Avec l'indicatif du pays. Sans numéro, WhatsApp vous laisse choisir le contact.")}
-              </p>
-            </div>
+            {result.url ? (
+              <audio className="audio-player" controls autoPlay src={result.url} />
+            ) : (
+              <div className="voice-preview">
+                <button type="button" className="btn btn-primary" onClick={() => speak(result.translation, result.to)}>
+                  <Icon name="play" size={18} />
+                  {t("Écouter")}
+                </button>
+                <p className="field-hint">
+                  {t("Aperçu avec la voix de l'appareil. Votre voix clonée sera disponible dès que le serveur JokuBot sera branché.")}
+                </p>
+              </div>
+            )}
 
-            <ul className="audio-results">
-              {results.map((result) => (
-                <li key={result.code} className="audio-result">
-                  <div className="audio-result-head">
-                    <p className="audio-result-lang">{t(lang(result.code).name)}</p>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => speak(result.text, result.code)}
-                    >
-                      <Icon name="play" size={16} />
-                      {t("Écouter")}
-                    </button>
-                  </div>
-                  <label className="sr-only" htmlFor={`audio-result-${result.code}`}>
-                    {t("Traduction en {langue}", { langue: t(lang(result.code).name) })}
-                  </label>
-                  <textarea
-                    id={`audio-result-${result.code}`}
-                    className="input textarea audio-result-text"
-                    value={result.text}
-                    onChange={(event) =>
-                      setResults((list) => list.map((r) => (r.code === result.code ? { ...r, text: event.target.value } : r)))
-                    }
-                  />
-                  <div className="audio-result-actions">
-                    <a className="btn btn-primary btn-sm" href={whatsappUrl(phone, result.text)} target="_blank" rel="noreferrer">
-                      <Icon name="send" size={16} />
-                      {t("Envoyer en {langue}", { langue: t(lang(result.code).name) })}
-                    </a>
-                    {audioShareable ? (
-                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => void shareAudio(result.text)}>
-                        <Icon name="mic" size={16} />
-                        {t("Partager l'audio et ce texte")}
-                      </button>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <p className="voice-translation">{result.translation}</p>
+
+            <details className="voice-original">
+              <summary>{result.demo ? t("Phrase d'exemple") : t("Ce que vous avez dit")}</summary>
+              <p>{result.text}</p>
+              {original ? <audio className="audio-player" controls src={original.url} /> : null}
+            </details>
 
             <div className="audio-final">
-              {results.length > 1 ? (
-                <a className="btn btn-primary btn-block" href={whatsappUrl(phone, allInOne)} target="_blank" rel="noreferrer">
-                  <Icon name="send" size={20} />
-                  {t("Envoyer toutes les langues en un message")}
-                </a>
+              <button type="button" className="btn btn-primary btn-block" onClick={() => void sendAudio()}>
+                <Icon name="send" size={20} />
+                {t("Envoyer l'audio sur WhatsApp")}
+              </button>
+              {result.url && !canShareFile ? (
+                <p className="field-hint">{t("Sur ordinateur, l'audio est téléchargé puis WhatsApp Web s'ouvre : glissez le fichier dans la discussion.")}</p>
               ) : null}
-              {audio ? (
-                <a className="btn btn-ghost btn-block" href={audio.url} download={audio.file.name}>
+              {result.url && resultFile ? (
+                <a className="btn btn-ghost btn-block" href={result.url} download={resultFile.name}>
                   <Icon name="download" size={20} />
                   {t("Télécharger l'audio")}
                 </a>
               ) : null}
-              <p className="field-hint">
-                {audioShareable
-                  ? t("Sur téléphone, « Partager l'audio » envoie votre voix avec le texte traduit.")
-                  : t("WhatsApp reçoit le texte traduit. Pour joindre votre voix, téléchargez l'audio puis ajoutez-le dans la discussion.")}
-              </p>
+              <button type="button" className="btn btn-ghost btn-block" onClick={restart}>
+                <Icon name="refresh" size={20} />
+                {t("Recommencer")}
+              </button>
             </div>
           </section>
         ) : null}

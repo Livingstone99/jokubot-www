@@ -1529,6 +1529,20 @@ button {
   font-size: 8px;
 }
 
+/* Logo officiel (WhatsApp, Telegram) : l'image remplace le carré bordé. */
+.mono.mono-logo {
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+}
+
+.mono-logo > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .mono.is-filled {
   background: var(--ink);
   color: var(--on-ink);
@@ -4458,6 +4472,26 @@ html:has(.modal[open]) {
   font-weight: 700;
 }
 
+.home-card.is-soon:hover {
+  box-shadow: var(--shadow-card);
+  transform: none;
+}
+
+.home-card.is-soon .home-card-icon {
+  background: var(--line);
+  color: var(--ink-2);
+}
+
+.home-card-soon {
+  margin-top: var(--s2);
+  padding: 2px var(--s2);
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .home-card-cta .icon {
   transition: transform var(--d-base) var(--ease-out);
 }
@@ -4779,8 +4813,143 @@ html:has(.modal[open]) {
   gap: var(--s2);
 }
 
+/* Voix clonée */
+
+.voice-langs {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: var(--s2);
+}
+
+.voice-swap {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+}
+
+.voice-stage {
+  display: grid;
+  justify-items: center;
+  gap: var(--s2);
+  padding: var(--s4) 0;
+  text-align: center;
+}
+
+.voice-mic {
+  width: 96px;
+  height: 96px;
+  margin-bottom: var(--s2);
+}
+
+.voice-mic:disabled {
+  opacity: 0.6;
+}
+
+.voice-heard {
+  max-width: 48ch;
+  color: var(--ink-2);
+  font-style: italic;
+}
+
+.voice-progress {
+  display: grid;
+  gap: var(--s2);
+  list-style: none;
+}
+
+.voice-progress-step {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
+.voice-progress-step.is-now,
+.voice-progress-step.is-done {
+  color: var(--ink);
+}
+
+.voice-progress-dot {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border: 2px solid var(--line-2);
+  border-radius: 50%;
+}
+
+.voice-progress-step.is-now .voice-progress-dot {
+  border-color: var(--ink);
+  border-top-color: transparent;
+  animation: voice-spin 0.9s linear infinite;
+}
+
+.voice-progress-step.is-done .voice-progress-dot {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+@keyframes voice-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.voice-preview {
+  display: grid;
+  justify-items: start;
+  gap: var(--s2);
+}
+
+.voice-demo-badge {
+  padding: 2px var(--s2);
+  border-radius: 999px;
+  background: var(--muted-bg);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.voice-translation {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.voice-original {
+  color: var(--ink-2);
+}
+
+.voice-original summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.voice-original[open] {
+  display: grid;
+  gap: var(--s2);
+}
+
+@media (max-width: 420px) {
+  .voice-langs {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .voice-swap {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .audio-rec.is-on {
+  .audio-rec.is-on,
+  .voice-progress-step.is-now .voice-progress-dot {
     animation: none;
   }
 }
