@@ -3,9 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { NETWORKS } from "../catalog.js";
 import { connectionOf, useDb, type NetworkId } from "../db.js";
-import { CHANNEL_FLOWS } from "../flows/channels.js";
+import { CHANNEL_FLOWS, postfastFlow } from "../flows/channels.js";
 import { t } from "../prefs.js";
-import { isSocial, SOCIAL_IDS, SocialLogo } from "../social.js";
+import { isSocial } from "../social.js";
 import { AppLink, Monogram, PageHeader, Rich } from "../ui.js";
 import { FlowModal } from "../wizard/FlowModal.js";
 
@@ -14,7 +14,7 @@ const MESSAGING: NetworkId[] = ["whatsapp", "telegram"];
 function MessagingCards() {
   const db = useDb();
   return (
-    <ul className="net-grid">
+    <ul className="net-grid net-grid-2">
       {NETWORKS.filter((net) => MESSAGING.includes(net.id)).map((net, i) => {
         const connection = connectionOf(db, net.id);
         return (
@@ -45,44 +45,37 @@ function MessagingCards() {
   );
 }
 
-/** Les 4 réseaux sociaux : logo, nom, statut, et « Connecter » ou « Gérer ». */
-function SocialCards() {
+/** Logos 3D de la carte PostFast, dans public/social-3d/. */
+const POSTFAST_LOGOS = ["skype", "whatsapp", "tiktok", "facebook", "twitter", "instagram"];
+
+/** Une case PostFast : tous les réseaux sociaux avec une seule clé. */
+function PostFastCard() {
   const db = useDb();
+  const connected = Boolean(db.postfast?.connected);
+  const firstNetwork = db.postfast?.networks[0] ?? "facebook";
+
   return (
-    <ul className="social-grid">
-      {SOCIAL_IDS.map((id, i) => {
-        const net = NETWORKS.find((n) => n.id === id);
-        if (!net) return null;
-        const connection = connectionOf(db, id);
-        return (
-          <li key={id} className="net-item" style={{ "--i": i } as CSSProperties}>
-            <div className={`social-card${connection.connected ? " is-on" : ""}`}>
-              {/* Un clic sur la carte ouvre l'espace du réseau (voir .social-open::after). */}
-              <AppLink to={`/reseaux/${id}`} className="social-open">
-                <span className="social-logo" aria-hidden="true">
-                  <SocialLogo id={id} size={26} />
-                </span>
-                <span className="social-name">{net.name}</span>
-              </AppLink>
-              <p className="net-state">
-                <span className={`dot${connection.connected ? " is-on" : ""}`} aria-hidden="true" />
-                {connection.connected ? t("Connecté") : t("Non connecté")}
-              </p>
-              <p className="social-account">{connection.connected && connection.account ? connection.account : " "}</p>
-              {connection.connected ? (
-                <AppLink to={`/reseaux/${id}`} className="btn btn-block btn-ghost social-btn">
-                  {t("Gérer")}
-                </AppLink>
-              ) : (
-                <AppLink to={`/connecter/${id}`} className="btn btn-block btn-primary social-btn">
-                  {t("Connecter")}
-                </AppLink>
-              )}
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+    // Connectée, la case ouvre l'espace du premier réseau relié ; sinon, la connexion.
+    <AppLink to={connected ? `/reseaux/${firstNetwork}` : "/connecter/postfast"} className={`postfast-card${connected ? " is-on" : ""}`}>
+      <p className="net-state">
+        <span className={`dot${connected ? " is-on" : ""}`} aria-hidden="true" />
+        {connected ? t("Connecté") : t("Non connecté")}
+      </p>
+      <span className="postfast-logos" aria-hidden="true">
+        {POSTFAST_LOGOS.map((name) => (
+          <img key={name} className="postfast-logo" src={`${import.meta.env.BASE_URL}social-3d/${name}.png`} alt="" />
+        ))}
+      </span>
+      <span className="postfast-name">PostFast</span>
+      <span className="postfast-sub">
+        {connected
+          ? t("{n} réseaux reliés", { n: db.postfast?.networks.length ?? 0 })
+          : t("Tous vos réseaux sociaux avec une seule clé")}
+      </span>
+      <span className={`btn btn-block ${connected ? "btn-ghost" : "btn-primary"}`}>
+        {connected ? t("Gérer mes réseaux") : t("Connecter PostFast")}
+      </span>
+    </AppLink>
   );
 }
 
@@ -90,19 +83,22 @@ export function ConnectionsPage() {
   const db = useDb();
   const navigate = useNavigate();
   const { network: opened } = useParams();
+  const isPostFast = opened === "postfast";
   const openedId = opened && NETWORKS.some((n) => n.id === opened) ? (opened as NetworkId) : null;
-  const count = NETWORKS.filter((n) => connectionOf(db, n.id).connected).length;
+  // Compteur : WhatsApp, Telegram et PostFast (qui regroupe les réseaux sociaux).
+  const count = MESSAGING.filter((id) => connectionOf(db, id).connected).length + (db.postfast?.connected ? 1 : 0);
+  const total = MESSAGING.length + 1;
 
   useEffect(() => {
     // Adresse d'un réseau inconnu : retour à la liste.
-    if (opened && !openedId) navigate("/", { replace: true });
-  }, [opened, openedId, navigate]);
+    if (opened && !openedId && !isPostFast) navigate("/", { replace: true });
+  }, [opened, openedId, isPostFast, navigate]);
 
   useEffect(() => {
     document.title = `${t("Connexions")} · JokuBot`;
   }, []);
 
-  const flow = openedId ? CHANNEL_FLOWS[openedId] : undefined;
+  const flow = isPostFast ? postfastFlow : openedId ? CHANNEL_FLOWS[openedId] : undefined;
   // Fermer la connexion d'un réseau social ramène à son espace.
   const closeTo = openedId && isSocial(openedId) ? `/reseaux/${openedId}` : "/";
 
@@ -110,35 +106,28 @@ export function ConnectionsPage() {
     <div className="page">
       <PageHeader
         title={t("Connexions")}
+        back={{ to: "/accueil", label: t("Accueil") }}
         subtitle={t("Reliez les messageries où vos clients vous écrivent. JokuBot leur répond à votre place.")}
         aside={
           <p className="counter" aria-live="polite">
-            <Rich text={count > 1 ? "**{n}** connectés sur {total}" : "**{n}** connecté sur {total}"} vars={{ n: count, total: NETWORKS.length }} />
+            <Rich text={count > 1 ? "**{n}** connectés sur {total}" : "**{n}** connecté sur {total}"} vars={{ n: count, total }} />
           </p>
         }
       />
 
-      <section className="net-group" aria-labelledby="group-messageries">
-        <div className="net-group-head">
-          <h2 id="group-messageries" className="net-group-title">
-            {t("Messageries")}
-          </h2>
-          <p className="net-group-sub">{t("Vos clients vous écrivent ici. JokuBot leur répond.")}</p>
-        </div>
-        <MessagingCards />
-      </section>
+      {/* Messageries et PostFast, côte à côte sur ordinateur. */}
+      <div className="connect-top">
+        <section className="net-group" aria-label={t("Messageries")}>
+          <MessagingCards />
+        </section>
 
-      <section className="net-group" aria-labelledby="group-reseaux">
-        <div className="net-group-head">
-          <h2 id="group-reseaux" className="net-group-title">
-            {t("Réseaux sociaux")}
-          </h2>
-          <p className="net-group-sub">{t("Gérés par PostFast. Touchez un réseau pour voir ses options.")}</p>
-        </div>
-        <SocialCards />
-      </section>
+        <section className="net-group" aria-label={t("Tous les réseaux")}>
+          <PostFastCard />
+        </section>
+      </div>
 
-      {openedId && flow ? <FlowModal key={openedId} flow={flow} onClose={() => navigate(closeTo)} /> : null}
+
+      {flow ? <FlowModal key={opened} flow={flow} onClose={() => navigate(closeTo)} /> : null}
     </div>
   );
 }

@@ -363,7 +363,7 @@ function PhoneField({ field, value, error, onChange }: FieldProps<Base & { kind:
           >
             {COUNTRIES.map((c) => (
               <option key={c.code} value={c.dial}>
-                {c.code} {c.dial}
+                {t(c.name)} ({c.dial})
               </option>
             ))}
           </select>

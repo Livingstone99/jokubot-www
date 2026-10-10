@@ -8,6 +8,8 @@ export type NetworkInfo = {
   /** Complément de « Connecter … ». */
   cta: string;
   mono: string;
+  /** Logo dans public/, affiché à la place du monogramme. */
+  logo?: string;
   available: boolean;
 };
 
@@ -17,6 +19,7 @@ export const NETWORKS: NetworkInfo[] = [
     name: "WhatsApp",
     cta: "WhatsApp",
     mono: "Wa",
+    logo: "channels/whatsapp.jpg",
     available: true,
   },
   {
@@ -24,6 +27,7 @@ export const NETWORKS: NetworkInfo[] = [
     name: "Telegram",
     cta: "Telegram",
     mono: "Tg",
+    logo: "channels/telegram.jpg",
     available: true,
   },
   {

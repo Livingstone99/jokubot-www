@@ -165,15 +165,19 @@ En haut à droite (et dans la barre du haut sur téléphone, et sur l'écran de 
 - Changer de langue reconstruit l'interface. Les données saisies (noms, descriptions, ventes) ne sont pas traduites.
 - **Thème** : les couleurs sont des variables en haut de `styles.css`, redéfinies sous `:root[data-theme="dark"]`. Les panneaux toujours sombres (menu, cartes Services, notifications) utilisent `--panel` ; le texte posé sur un fond `--ink` utilise `--on-ink`.
 
-### Réseaux sociaux (PostFast) — frontend seulement
+### PostFast : une clé pour tous les réseaux
 
-X (Twitter), Instagram, Facebook et TikTok ont leur section sur la page Connexions : logo, nom, statut (« Connecté » / « Non connecté ») et bouton « Connecter » ou « Gérer ».
+À côté de « Messageries », la case **PostFast** (grille de logos) ouvre un parcours en 3 étapes :
 
-- **Connecter** ouvre la fenêtre de connexion, en étapes : type de compte (cartes), autorisation (en démonstration, le compte se connecte seul après 4 s), rythme de publication, heure en créneaux (8 h, 12 h, 18 h, 20 h) et sujets, puis « Terminé ». Ces choix s'affichent dans l'espace du réseau.
-- **Un clic sur la carte** (ou « Gérer ») ouvre l'espace du réseau, `#/reseaux/:id` : compte connecté (abonnés, publications), créer une publication (texte avec limite de caractères propre au réseau, image ou vidéo, moment choisi en créneaux : maintenant, aujourd'hui 18 h, demain 12 h ou 18 h, autre date), liste des publications, déconnexion. Une barre en haut passe d'un réseau à l'autre.
-- Règles par réseau (`src/jokubot/social.tsx`) : X 280 caractères ; Instagram demande une image ou une vidéo ; TikTok demande une vidéo.
+1. **PostFast** : bouton « Ouvrir PostFast » (`https://app.postfa.st`) ; l'utilisateur y crée son compte, y connecte ses réseaux, puis copie une clé API dans Workspace Settings.
+2. **Clé API** : il colle la clé ; JokuBot lit les comptes reliés (`GET /social-media/my-social-accounts`) et connecte d'un coup Facebook, Instagram, X et TikTok.
+3. **Terminé** : la liste des réseaux reliés.
 
-**Pour cette version, aucune connexion réelle** : comptes, abonnés et publications sont des données fictives (`mockPosts`, `MOCK_FOLLOWERS`). Facebook et Instagram sont connectés à la création du compte, X et TikTok ne le sont pas. Brancher l'API PostFast se fera dans `api.ts` (`socialStart`, `socialStatus`, `socialPublish`), sans toucher aux écrans.
+PostFast n'accepte pas les appels directs d'une page web (pas d'en-tête CORS) : en local, le serveur Vite relaie `/postfast/*` vers `https://api.postfa.st` (voir `vite.config.ts`). Sur GitHub Pages, il n'y a pas de relais : il faudra un backend. La clé `pf_demo_jokubot` permet d'essayer sans compte. La clé n'est pas gardée dans le navigateur ; en production, le serveur JokuBot devra la conserver.
+
+### Espace d'un réseau social
+
+La page Connexions n'affiche plus de carte par réseau social : une fois PostFast connecté, la case PostFast (« Gérer mes réseaux ») ouvre l'espace du premier réseau relié, `#/reseaux/:id`. On y trouve le compte connecté, la création d'une publication (texte avec limite propre au réseau, image ou vidéo, moment choisi en créneaux), la liste des publications et la déconnexion ; une barre en haut passe d'un réseau à l'autre. Règles et données fictives : `src/jokubot/social.tsx`.
 
 ### Organisation du code (`src/jokubot/`)
 
@@ -186,7 +190,7 @@ X (Twitter), Instagram, Facebook et TikTok ont leur section sur la page Connexio
 | `catalog.ts` | Liste des messageries et des moteurs, avec leurs textes |
 | `wizard/Wizard.tsx` | Moteur commun des parcours : étapes, validation, focus sur la première erreur, écran « Terminé ». Affiché dans une fenêtre par `wizard/FlowModal.tsx` (connexions et réglages des services) |
 | `wizard/fields.tsx` | Les champs : texte, e-mail, téléphone avec indicatif, secret, zone de texte, liste, cartes radio, cartes à cocher, code à 5 cases, plage horaire |
-| `flows/channels.tsx` | Parcours WhatsApp et Telegram (numéro, liaison, terminé) et connexion des réseaux sociaux (autorisation, terminé) |
+| `flows/channels.tsx` | Parcours WhatsApp (numéro, liaison), Telegram (BotFather, jeton du bot) et connexion des réseaux sociaux (compte, autorisation, publication) |
 | `social.tsx` | Réseaux sociaux : logos, règles de publication, données fictives |
 | `pages/Network.tsx` | Espace d'un réseau social |
 | `flows/engines.tsx` | Parcours de réglage des 6 moteurs |
@@ -199,7 +203,7 @@ Un parcours se décrit en données (`FlowDef`) : une liste d'étapes avec leurs 
 ### Démonstration
 
 - À la création du compte : WhatsApp connecté (+225 07 08 45 12 30), service client actif pour la Boutique Awa, 2 informations connues, 5 ventes dont un paiement Nafolo à vérifier.
-- WhatsApp se relie seul au bout de 9 s. Le code Telegram est `12345` ; un numéro qui finit par 0 demande en plus le mot de passe Telegram.
+- WhatsApp se relie seul au bout de 9 s. Telegram se connecte avec un bot créé dans BotFather : le jeton est vérifié pour de vrai auprès de Telegram (méthode `getMe`), et le jeton `123456789:DEMO-jokubot` permet d'essayer sans bot. Le jeton n'est pas gardé dans le navigateur ; en production, le serveur JokuBot devra le conserver.
 - Pour repartir de zéro : vider le stockage du site dans le navigateur, ou se déconnecter puis créer un compte avec une autre adresse.
 
 ### Règles de l'espace
