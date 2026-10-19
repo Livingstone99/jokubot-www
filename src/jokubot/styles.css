@@ -4833,6 +4833,63 @@ html:has(.modal[open]) {
   gap: var(--s2);
 }
 
+.audio-modes {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s2);
+}
+
+.audio-voices {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.audio-voice-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.audio-voice-pick {
+  flex: 1;
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctrl);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.audio-voice-row.is-on .audio-voice-pick,
+.audio-voice-pick:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.audio-voice-row .btn {
+  flex: none;
+}
+
+.audio-voice-pick span {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.audio-how {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
 /* Voix clonée */
 
 .voice-langs {

@@ -14,7 +14,7 @@ const FEATURES: Card[] = [
   {
     to: "/audio",
     title: "Audio",
-    text: "Parlez, JokuBot clone votre voix et répète vos mots dans la langue de votre choix.",
+    text: "Choisissez une voix JokuBot ou enregistrez la vôtre, puis transformez un texte en audio. Envoyez un vocal sur WhatsApp pour le transcrire.",
     icon: "mic",
   },
   {
